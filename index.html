@@ -69,8 +69,8 @@
         <!-- Hidden Import File Input -->
         <input type="file" id="file-import" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
-        <!-- Scrolling Content Area -->
-        <main id="content-area" class="flex-1 overflow-y-auto no-scrollbar p-4">
+        <!-- Scrolling Content Area with generous bottom padding so content is never hidden behind the nav bar -->
+        <main id="content-area" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-28">
             <!-- Rendered via JS -->
         </main>
 
@@ -112,7 +112,7 @@
                 </div>
             </div>
 
-            <div id="modal-content" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-20"></div>
+            <div id="modal-content" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-28"></div>
         </div>
 
         <!-- Full-Screen Interactive Cooking Overlay -->
@@ -132,7 +132,7 @@
                 </div>
             </div>
 
-            <div id="fs-wizard-body" class="flex-1 p-4 flex flex-col justify-between overflow-y-auto no-scrollbar"></div>
+            <div id="fs-wizard-body" class="flex-1 p-4 pb-10 flex flex-col justify-between overflow-y-auto no-scrollbar"></div>
         </div>
 
         <!-- Toast Notification Popup -->
@@ -166,11 +166,11 @@
                 ],
                 steps: [
                     { icon: "bowl", text: "Mix flour, yeast, and warm water in a bowl. Knead for 8 minutes until smooth.", duration: 0 },
-                    { icon: "timer", text: "Cover dough and leave in a warm spot to rise.", duration: 30 },
+                    { icon: "timer", text: "Cover dough and leave in a warm spot to rise.", duration: 1 },
                     { icon: "flame", text: "Preheat oven to 230°C (450°F) or highest setting.", duration: 0 },
                     { icon: "disc", text: "Stretch dough into a 10-inch circle on a baking sheet.", duration: 0 },
                     { icon: "utensils", text: "Spread passata evenly and top with torn mozzarella slices.", duration: 0 },
-                    { icon: "timer", text: "Bake in the hot oven until crust is golden and cheese bubbles.", duration: 12 }
+                    { icon: "timer", text: "Bake in the hot oven until crust is golden and cheese bubbles.", duration: 1 }
                 ]
             },
             {
@@ -193,7 +193,7 @@
                     { icon: "flame", text: "Preheat oven to 180°C (350°F) and line a 12-hole muffin tray.", duration: 0 },
                     { icon: "bowl", text: "Beat butter and sugar together until light and fluffy.", duration: 0 },
                     { icon: "egg", text: "Whisk in eggs one at a time with vanilla extract.", duration: 0 },
-                    { icon: "timer", text: "Bake in oven until golden and springy to touch.", duration: 15 }
+                    { icon: "timer", text: "Bake in oven until golden and springy to touch.", duration: 1 }
                 ]
             }
         ];
@@ -249,11 +249,15 @@
         let timerOriginalSeconds = 0;
         let isTimerRunning = false;
         
+        // Alarm sound handles
+        let alarmInterval = null;
+        let activeAlarmAudioCtx = null;
+        
         let apiSources = [
             { id: 'themealdb', name: 'TheMealDB Free API', enabled: true, url: 'https://www.themealdb.com/api/json/v1/1/search.php?s=' },
             { id: 'dummyjson', name: 'DummyJSON Recipes', enabled: true, url: 'https://dummyjson.com/recipes/search?q=' },
             { id: 'spoonacular', name: 'Spoonacular Asian & Indian API', enabled: true, url: 'https://api.spoonacular.com/recipes/complexSearch?apiKey=1ace6de432cc42f0bb84f80bd40aff8f&addRecipeInformation=true&query=' },
-            { id: 'tasty_asian', name: 'Tasty Regional Asian Feed', enabled: true, url: 'https://www.themealdb.com/api/json/v1/1/filter.php?a=Indian' }
+            { id: 'foodashi', name: 'Foodashi Asian & Global API', enabled: true, url: 'https://api.foodashi.com/v1/recipes/search?q=' }
         ];
 
         // Dynamic candidate filenames to scan in the recipes/ folder without hardcoding exact lists
@@ -427,7 +431,7 @@
         async function handleRecipeClick(recipeId, isLocal) {
             if (!isLocal) {
                 const recipe = onlineResults.find(r => r.id === recipeId);
-                // If Spoonacular recipe has missing or thin steps/ingredients, fetch full endpoint info immediately
+                // On-demand fetch if Spoonacular recipe lacks proper steps
                 if (recipe && recipe.source === 'Spoonacular' && recipe._rawId && (!recipe.ingredients || recipe.ingredients.length <= 1 || !recipe.steps || recipe.steps.length <= 1)) {
                     showToast("Fetching complete recipe data...");
                     try {
@@ -473,7 +477,7 @@
         function renderOnlineTab(container) {
             container.innerHTML = `
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-white mb-2">Explore Indian & Asian Recipes</h2>
+                    <h2 class="text-base font-bold text-white mb-2">Explore Asian & Indian Recipes</h2>
                     <div class="flex gap-2 mb-3">
                         <div class="relative flex-1">
                             <input type="text" id="search-online-input" placeholder="Search Samosa, Curry, Ramen, Tikka..." 
@@ -496,7 +500,7 @@
                 <div id="online-results-container">
                     <div class="text-center py-12 text-slate-500">
                         <i data-lucide="globe-2" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
-                        <p class="text-xs">Search online sources to discover regional Asian & Indian dishes.</p>
+                        <p class="text-xs">Search online sources across TheMealDB, DummyJSON, Spoonacular & Foodashi.</p>
                     </div>
                 </div>
             `;
@@ -515,7 +519,7 @@
             resultsContainer.innerHTML = `
                 <div class="text-center py-12 text-slate-400">
                     <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin text-brand-500"></i>
-                    <p class="text-xs">Querying Asian & Indian Recipe Sources...</p>
+                    <p class="text-xs">Querying multi-source recipe databases...</p>
                 </div>
             `;
             lucide.createIcons();
@@ -526,10 +530,6 @@
             for (let source of activeSources) {
                 try {
                     let fetchUrl = source.url + encodeURIComponent(query);
-                    if (source.id === 'tasty_asian') {
-                        fetchUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`;
-                    }
-
                     const res = await fetch(fetchUrl);
                     if (!res.ok) continue;
                     const data = await res.json();
@@ -541,8 +541,9 @@
                     } else if (source.id === 'spoonacular' && (data.results || Array.isArray(data))) {
                         const items = data.results || (Array.isArray(data) ? data : []);
                         items.forEach(sp => onlineResults.push(parseSpoonacular(sp, 'Spoonacular')));
-                    } else if (source.id === 'tasty_asian' && data.meals) {
-                        data.meals.slice(0, 4).forEach(meal => onlineResults.push(parseTheMealDB(meal, 'TastyAsia')));
+                    } else if (source.id === 'foodashi' && (data.recipes || Array.isArray(data))) {
+                        const items = data.recipes || (Array.isArray(data) ? data : []);
+                        items.forEach(fd => onlineResults.push(parseFoodashi(fd, 'Foodashi')));
                     }
                 } catch(e) {
                     console.error("Error fetching source: " + source.name, e);
@@ -631,7 +632,6 @@
         }
 
         function parseSpoonacular(sp, sourceName) {
-            // Bulletproof Ingredient Extraction Stream
             let ingredients = [];
             if (Array.isArray(sp.extendedIngredients) && sp.extendedIngredients.length > 0) {
                 ingredients = sp.extendedIngredients.map(i => ({
@@ -643,7 +643,6 @@
                 ingredients = sp.ingredients.map(i => (typeof i === 'string' ? { name: i, quantity: 1, unit: 'unit' } : { name: i.name || 'Ingredient', quantity: i.amount || 1, unit: i.unit || 'unit' }));
             }
 
-            // Bulletproof Step Extraction Stream (Analyzed -> Instructions String -> Summary)
             let steps = [];
             if (Array.isArray(sp.analyzedInstructions) && sp.analyzedInstructions.length > 0 && Array.isArray(sp.analyzedInstructions[0].steps)) {
                 steps = sp.analyzedInstructions[0].steps.map(st => {
@@ -695,7 +694,7 @@
 
             return {
                 id: 'online_sp_' + (sp.id || Math.random().toString(36).substr(2, 9)),
-                _rawId: sp.id, // Retained for on-demand fetch if summary steps are sparse
+                _rawId: sp.id,
                 title: sp.title || sp.name || 'Untitled Recipe',
                 source: sourceName,
                 servings: sp.servings || 4,
@@ -710,6 +709,40 @@
                 },
                 dietary: (sp.cuisines && sp.cuisines.length > 0) ? sp.cuisines : (sp.dishTypes || ['Asian/Global']),
                 ingredients: ingredients,
+                steps: steps
+            };
+        }
+
+        function parseFoodashi(fd, sourceName) {
+            const ingredients = (fd.ingredients || []).map(i => ({
+                name: i.name || 'Ingredient',
+                quantity: i.amount || i.quantity || 1,
+                unit: i.unit || 'g'
+            }));
+
+            const rawSteps = (fd.instructions || fd.steps || []).map(st => typeof st === 'string' ? st : (st.text || ''));
+            const steps = rawSteps.length > 0 ? rawSteps.map(st => ({
+                icon: 'utensils',
+                text: st,
+                duration: 0
+            })) : [{ icon: 'utensils', text: `Prepare components for ${fd.title || 'Foodashi Dish'}, cook thoroughly, and serve.`, duration: 0 }];
+
+            return {
+                id: 'online_fd_' + (fd.id || Math.random().toString(36).substr(2, 9)),
+                title: fd.title || fd.name || 'Untitled Recipe',
+                source: sourceName,
+                servings: fd.servings || 4,
+                prepTime: '15 mins',
+                cookTime: '25 mins',
+                rating: 5,
+                nutrition: {
+                    calories: fd.nutrition?.calories || 450,
+                    protein: (fd.nutrition?.protein || 20) + 'g',
+                    carbs: (fd.nutrition?.carbs || 40) + 'g',
+                    fat: (fd.nutrition?.fat || 15) + 'g'
+                },
+                dietary: fd.cuisines || ['Asian/Global'],
+                ingredients: ingredients.length > 0 ? ingredients : [{ name: 'Ingredients as per recipe', quantity: 1, unit: 'serving' }],
                 steps: steps
             };
         }
@@ -1064,7 +1097,7 @@
                 if (timerSecondsRemaining <= 0) {
                     stopStepTimer();
                     updateTimerButtonState(false);
-                    playTimerBeepSound();
+                    startAlarmSound();
                     showToast("⏰ Timer Finished! Check your food.");
                 }
             }, 1000);
@@ -1073,6 +1106,7 @@
         function stopStepTimer() {
             if (timerInterval) clearInterval(timerInterval);
             isTimerRunning = false;
+            stopAlarmSound();
         }
 
         function resetStepTimer(defaultSeconds) {
@@ -1110,22 +1144,38 @@
             }
         }
 
-        function playTimerBeepSound() {
+        function startAlarmSound() {
+            stopAlarmSound();
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.start();
-                osc.stop(audioCtx.currentTime + 1.2);
+                activeAlarmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const playBeep = () => {
+                    if (!activeAlarmAudioCtx) return;
+                    try {
+                        const osc = activeAlarmAudioCtx.createOscillator();
+                        const gain = activeAlarmAudioCtx.createGain();
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(920, activeAlarmAudioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.35, activeAlarmAudioCtx.currentTime);
+                        osc.connect(gain);
+                        gain.connect(activeAlarmAudioCtx.destination);
+                        osc.start();
+                        osc.stop(activeAlarmAudioCtx.currentTime + 0.3);
+                    } catch(e) {}
+                };
+                playBeep();
+                alarmInterval = setInterval(playBeep, 600);
             } catch(e) {}
+        }
+
+        function stopAlarmSound() {
+            if (alarmInterval) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+            if (activeAlarmAudioCtx) {
+                try { activeAlarmAudioCtx.close(); } catch(e) {}
+                activeAlarmAudioCtx = null;
+            }
         }
 
         function finishCookingSessionFromFS() {
