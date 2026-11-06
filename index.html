@@ -256,14 +256,20 @@
             { id: 'tasty_asian', name: 'Tasty Regional Asian Feed', enabled: true, url: 'https://www.themealdb.com/api/json/v1/1/filter.php?a=Indian' }
         ];
 
-        // Known recipe JSON paths in recipes/ folder to auto-load
-        const LOCAL_FOLDER_RECIPE_FILES = [
-            'recipes/chicken_tikka_masala.json',
-            'recipes/japanese_teriyaki_chicken.json',
-            'recipes/szechuan_kung_pao_chicken.json'
+        // Dynamic candidate filenames to scan in the recipes/ folder without hardcoding exact lists
+        const DYNAMIC_SCAN_CANDIDATES = [
+            'chicken_tikka_masala.json',
+            'japanese_teriyaki_chicken.json',
+            'szechuan_kung_pao_chicken.json',
+            'butter_chicken.json',
+            'paneer_tikka.json',
+            'dal_makhani.json',
+            'chana_masala.json',
+            'vegetable_samosa.json',
+            'palak_paneer.json'
         ];
 
-        // --- 3. INIT & AUTO-SCAN LOCAL RECIPES FOLDER ---
+        // --- 3. INIT & DYNAMIC FOLDER SCANNING ---
         window.addEventListener('DOMContentLoaded', async () => {
             await initApp();
         });
@@ -276,8 +282,8 @@
                 localRecipes = [...BUILTIN_RECIPES];
             }
 
-            // Auto-load recipes from local recipes/ directory
-            await loadLocalFolderRecipes();
+            // Dynamically scan candidates in recipes/ directory
+            await scanLocalFolderRecipes();
 
             const savedPaused = localStorage.getItem('gourmet_paused_session');
             if (savedPaused) {
@@ -296,19 +302,20 @@
             switchTab('local');
         }
 
-        async function loadLocalFolderRecipes() {
-            for (let path of LOCAL_FOLDER_RECIPE_FILES) {
+        async function scanLocalFolderRecipes() {
+            for (let filename of DYNAMIC_SCAN_CANDIDATES) {
+                const path = `recipes/${filename}`;
                 try {
                     const res = await fetch(path);
                     if (res.ok) {
                         const rec = await res.json();
                         rec.source = 'local';
-                        if (!localRecipes.some(r => r.id === rec.id)) {
+                        if (rec.id && !localRecipes.some(r => r.id === rec.id)) {
                             localRecipes.push(rec);
                         }
                     }
                 } catch(e) {
-                    console.log(`Note: File ${path} not directly accessible via HTTP fetch. Use Upload button if running without a local web server.`);
+                    // Ignore missing files during dynamic scan
                 }
             }
             saveLocalRecipesToStorage();
@@ -378,7 +385,7 @@
                 html += `<div class="grid grid-cols-1 gap-3">`;
                 list.forEach(recipe => {
                     const solidStarsCount = Math.round(recipe.rating || 5);
-                    const stars = '★'.repeat(solidStarsCount); // Solid stars only!
+                    const stars = '★'.repeat(solidStarsCount);
                     const sourceTag = `[${recipe.source || (isLocal ? 'local' : 'online')}]`;
                     const tags = (recipe.dietary || []).map(d => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300">${d}</span>`).join(' ');
 
@@ -419,22 +426,21 @@
 
         async function handleRecipeClick(recipeId, isLocal) {
             if (!isLocal) {
-                // Find in onlineResults
                 const recipe = onlineResults.find(r => r.id === recipeId);
-                // If it's a Spoonacular recipe and lacks proper steps/ingredients, fetch full info on the fly
-                if (recipe && recipe.source === 'Spoonacular' && recipe._rawId && (!recipe.ingredients || recipe.ingredients.length <= 1 || recipe.steps.length <= 1)) {
-                    showToast("Fetching full recipe details...");
+                // If Spoonacular recipe has missing or thin steps/ingredients, fetch full endpoint info immediately
+                if (recipe && recipe.source === 'Spoonacular' && recipe._rawId && (!recipe.ingredients || recipe.ingredients.length <= 1 || !recipe.steps || recipe.steps.length <= 1)) {
+                    showToast("Fetching complete recipe data...");
                     try {
                         const res = await fetch(`https://api.spoonacular.com/recipes/${recipe._rawId}/information?apiKey=1ace6de432cc42f0bb84f80bd40aff8f&includeNutrition=true`);
                         if (res.ok) {
                             const detailedData = await res.json();
                             const parsed = parseSpoonacular(detailedData, 'Spoonacular');
-                            parsed.id = recipe.id; // preserve id
+                            parsed.id = recipe.id;
                             const idx = onlineResults.findIndex(r => r.id === recipeId);
                             if (idx !== -1) onlineResults[idx] = parsed;
                         }
                     } catch(e) {
-                        console.error("Failed to fetch detailed Spoonacular info", e);
+                        console.error("Error fetching detailed Spoonacular info", e);
                     }
                 }
             }
@@ -625,6 +631,7 @@
         }
 
         function parseSpoonacular(sp, sourceName) {
+            // Bulletproof Ingredient Extraction Stream
             let ingredients = [];
             if (Array.isArray(sp.extendedIngredients) && sp.extendedIngredients.length > 0) {
                 ingredients = sp.extendedIngredients.map(i => ({
@@ -636,6 +643,7 @@
                 ingredients = sp.ingredients.map(i => (typeof i === 'string' ? { name: i, quantity: 1, unit: 'unit' } : { name: i.name || 'Ingredient', quantity: i.amount || 1, unit: i.unit || 'unit' }));
             }
 
+            // Bulletproof Step Extraction Stream (Analyzed -> Instructions String -> Summary)
             let steps = [];
             if (Array.isArray(sp.analyzedInstructions) && sp.analyzedInstructions.length > 0 && Array.isArray(sp.analyzedInstructions[0].steps)) {
                 steps = sp.analyzedInstructions[0].steps.map(st => {
@@ -677,7 +685,7 @@
                 ingredients = [{ name: 'Fresh Ingredients as per Recipe', quantity: 1, unit: 'serving' }];
             }
             if (steps.length === 0) {
-                steps = [{ icon: 'utensils', text: `Prepare all ingredients for ${sp.title}, combine thoroughly, cook over medium heat until done, and serve warm.`, duration: 0 }];
+                steps = [{ icon: 'utensils', text: `Prepare all ingredients for ${sp.title}, combine thoroughly, cook over medium heat until golden and crisp, and serve warm.`, duration: 0 }];
             }
 
             const cal = sp.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || sp.calories || 420;
@@ -687,7 +695,7 @@
 
             return {
                 id: 'online_sp_' + (sp.id || Math.random().toString(36).substr(2, 9)),
-                _rawId: sp.id, // retained for on-demand fetch if needed
+                _rawId: sp.id, // Retained for on-demand fetch if summary steps are sparse
                 title: sp.title || sp.name || 'Untitled Recipe',
                 source: sourceName,
                 servings: sp.servings || 4,
