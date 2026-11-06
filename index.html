@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YimCook - Mobile Recipe Assistant</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,24 +31,25 @@
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; overflow: hidden; height: 100vh; height: 100dvh; }
         @media (min-width: 640px) {
             .mobile-frame {
                 max-width: 420px;
-                height: 880px;
+                height: 90vh;
+                max-height: 880px;
                 border-radius: 40px;
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 12px #1f2937;
             }
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex items-center justify-center p-0 sm:p-4">
+<body class="bg-slate-950 text-slate-100 font-sans h-screen h-[100dvh] w-screen flex items-center justify-center p-0 sm:p-4 overflow-hidden">
 
     <!-- Main Mobile Frame -->
-    <div id="app" class="mobile-frame w-full h-screen bg-slate-900 flex flex-col relative overflow-hidden text-slate-100">
+    <div id="app" class="mobile-frame w-full h-full sm:h-[90vh] sm:max-h-[880px] bg-slate-900 flex flex-col justify-between relative overflow-hidden text-slate-100">
 
         <!-- Locked Header -->
-        <header class="bg-slate-800/95 backdrop-blur-md border-b border-slate-700/60 flex-shrink-0 z-30 px-4 py-3.5 flex items-center justify-between">
+        <header class="bg-slate-800/95 backdrop-blur-md border-b border-slate-700/60 h-16 flex-shrink-0 z-30 px-4 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-400 flex items-center justify-center text-white shadow-lg shadow-brand-600/30">
                     <i data-lucide="utensils" class="w-5 h-5"></i>
@@ -69,12 +70,12 @@
         <!-- Hidden Import File Input -->
         <input type="file" id="file-import" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
-        <!-- Scrolling Content Area with generous bottom padding so content is never hidden behind the nav bar -->
+        <!-- Independent Scrolling Content Area -->
         <main id="content-area" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-28">
             <!-- Rendered via JS -->
         </main>
 
-        <!-- Locked Bottom Navigation Bar (Touch-Optimized) -->
+        <!-- Locked Bottom Navigation Bar -->
         <nav class="flex-shrink-0 h-20 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700/80 px-3 flex items-center justify-around z-30 shadow-2xl">
             <button onclick="switchTab('local')" id="nav-local" class="nav-btn flex flex-col items-center justify-center w-full h-full text-brand-500 transition-all active:scale-95">
                 <i data-lucide="book-open" class="w-6 h-6 mb-1"></i>
@@ -97,7 +98,7 @@
 
         <!-- Recipe Detail Modal -->
         <div id="recipe-modal" class="fixed inset-0 bg-slate-900 z-40 hidden flex flex-col overflow-hidden">
-            <div class="px-4 py-3.5 bg-slate-800 border-b border-slate-700 flex-shrink-0 flex items-center justify-between">
+            <div class="px-4 h-16 bg-slate-800 border-b border-slate-700 flex-shrink-0 flex items-center justify-between">
                 <button onclick="closeRecipeModal()" class="p-3 rounded-xl bg-slate-700 text-slate-200 hover:text-white active:scale-95">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </button>
@@ -117,7 +118,7 @@
 
         <!-- Full-Screen Interactive Cooking Overlay -->
         <div id="fullscreen-cooking-overlay" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col overflow-hidden">
-            <div class="px-4 py-3.5 bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between">
+            <div class="px-4 h-16 bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
                     <span id="fs-recipe-title" class="font-bold text-sm text-white truncate max-w-[200px]">Cooking Mode</span>
@@ -249,7 +250,6 @@
         let timerOriginalSeconds = 0;
         let isTimerRunning = false;
         
-        // Alarm sound handles
         let alarmInterval = null;
         let activeAlarmAudioCtx = null;
         
@@ -260,7 +260,6 @@
             { id: 'foodashi', name: 'Foodashi Asian & Global API', enabled: true, url: 'https://api.foodashi.com/v1/recipes/search?q=' }
         ];
 
-        // Dynamic candidate filenames to scan in the recipes/ folder without hardcoding exact lists
         const DYNAMIC_SCAN_CANDIDATES = [
             'chicken_tikka_masala.json',
             'japanese_teriyaki_chicken.json',
@@ -273,7 +272,6 @@
             'palak_paneer.json'
         ];
 
-        // --- 3. INIT & DYNAMIC FOLDER SCANNING ---
         window.addEventListener('DOMContentLoaded', async () => {
             await initApp();
         });
@@ -286,7 +284,6 @@
                 localRecipes = [...BUILTIN_RECIPES];
             }
 
-            // Dynamically scan candidates in recipes/ directory
             await scanLocalFolderRecipes();
 
             const savedPaused = localStorage.getItem('gourmet_paused_session');
@@ -318,9 +315,7 @@
                             localRecipes.push(rec);
                         }
                     }
-                } catch(e) {
-                    // Ignore missing files during dynamic scan
-                }
+                } catch(e) {}
             }
             saveLocalRecipesToStorage();
         }
@@ -339,7 +334,6 @@
             }
         }
 
-        // --- 4. NAVIGATION ---
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -363,7 +357,6 @@
             lucide.createIcons();
         }
 
-        // --- 5. RENDER LOCAL TAB ---
         function renderLocalTab(container) {
             renderRecipeList(container, localRecipes, "My Recipe Collection", true);
         }
@@ -431,7 +424,6 @@
         async function handleRecipeClick(recipeId, isLocal) {
             if (!isLocal) {
                 const recipe = onlineResults.find(r => r.id === recipeId);
-                // On-demand fetch if Spoonacular recipe lacks proper steps
                 if (recipe && recipe.source === 'Spoonacular' && recipe._rawId && (!recipe.ingredients || recipe.ingredients.length <= 1 || !recipe.steps || recipe.steps.length <= 1)) {
                     showToast("Fetching complete recipe data...");
                     try {
@@ -443,9 +435,7 @@
                             const idx = onlineResults.findIndex(r => r.id === recipeId);
                             if (idx !== -1) onlineResults[idx] = parsed;
                         }
-                    } catch(e) {
-                        console.error("Error fetching detailed Spoonacular info", e);
-                    }
+                    } catch(e) {}
                 }
             }
             openRecipeModal(recipeId, isLocal);
@@ -473,7 +463,6 @@
             }
         }
 
-        // --- 6. EXPLORE ONLINE TAB & REGIONAL MULTI-SEARCH ---
         function renderOnlineTab(container) {
             container.innerHTML = `
                 <div class="mb-4">
@@ -489,7 +478,6 @@
                         </button>
                     </div>
 
-                    <!-- Quick Regional Presets -->
                     <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                         <button onclick="quickSearchRegional('Samosa')" class="px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-amber-400 font-medium whitespace-nowrap active:scale-95">🥟 Samosa</button>
                         <button onclick="quickSearchRegional('Indian Curry')" class="px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-amber-400 font-medium whitespace-nowrap active:scale-95">🇮🇳 Indian Curry</button>
@@ -545,9 +533,7 @@
                         const items = data.recipes || (Array.isArray(data) ? data : []);
                         items.forEach(fd => onlineResults.push(parseFoodashi(fd, 'Foodashi')));
                     }
-                } catch(e) {
-                    console.error("Error fetching source: " + source.name, e);
-                }
+                } catch(e) {}
             }
 
             if (onlineResults.length === 0) {
@@ -747,7 +733,6 @@
             };
         }
 
-        // --- 7. PAUSED TAB ---
         function renderPausedTab(container) {
             if (!pausedState) {
                 container.innerHTML = `
@@ -806,7 +791,6 @@
             showToast("Paused session discarded");
         }
 
-        // --- 8. SOURCES CONFIG TAB ---
         function renderSourcesTab(container) {
             let html = `
                 <div class="mb-4">
@@ -854,7 +838,6 @@
             showToast("API sources updated");
         }
 
-        // --- 9. MODAL & COOKING WIZARD ---
         function openRecipeModal(recipeId, isLocal, initialStepIndex = 0) {
             if (isLocal) {
                 activeRecipe = localRecipes.find(r => r.id === recipeId);
@@ -916,7 +899,6 @@
             const scaledCarbs = Math.round(baseCarbs * scaleFactor);
             const scaledFat = Math.round(baseFat * scaleFactor);
 
-            // SOLID STARS ONLY
             const userRating = Math.round(activeRecipe.rating || 5);
             let starsHtml = '';
             for (let i = 1; i <= userRating; i++) {
@@ -974,7 +956,6 @@
             `;
         }
 
-        // --- FULL-SCREEN COOKING WIZARD ---
         function enterFullscreenCooking(stepIdx = 0) {
             if (!activeRecipe) return;
             currentFSStepIndex = stepIdx;
@@ -1183,7 +1164,6 @@
             finishCookingSession();
         }
 
-        // --- 10. PAUSE SESSION & RATINGS ---
         function pauseCookingSession(stepIdx) {
             pausedState = {
                 recipe: activeRecipe,
@@ -1220,7 +1200,6 @@
             showToast(`Rated ${stars} Stars!`);
         }
 
-        // --- 11. IMPORT/EXPORT ---
         function saveOnlineToLocal() {
             if (!activeRecipe) return;
             const exists = localRecipes.some(r => r.id === activeRecipe.id);
