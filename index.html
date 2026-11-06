@@ -47,8 +47,8 @@
     <!-- Main Mobile Frame -->
     <div id="app" class="mobile-frame w-full h-screen bg-slate-900 flex flex-col relative overflow-hidden text-slate-100">
 
-        <!-- Header -->
-        <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-30 px-4 py-3.5 flex items-center justify-between">
+        <!-- Locked Header -->
+        <header class="bg-slate-800/95 backdrop-blur-md border-b border-slate-700/60 flex-shrink-0 z-30 px-4 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-400 flex items-center justify-center text-white shadow-lg shadow-brand-600/30">
                     <i data-lucide="utensils" class="w-5 h-5"></i>
@@ -69,13 +69,13 @@
         <!-- Hidden Import File Input -->
         <input type="file" id="file-import" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
-        <!-- Dynamic Content View Area -->
-        <main id="content-area" class="flex-1 overflow-y-auto no-scrollbar pb-28 p-4">
+        <!-- Scrolling Content Area -->
+        <main id="content-area" class="flex-1 overflow-y-auto no-scrollbar p-4">
             <!-- Rendered via JS -->
         </main>
 
-        <!-- Bottom Navigation Bar (Touch-Optimized) -->
-        <nav class="absolute bottom-0 left-0 right-0 h-20 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700/80 px-3 flex items-center justify-around z-30 shadow-2xl">
+        <!-- Locked Bottom Navigation Bar (Touch-Optimized) -->
+        <nav class="flex-shrink-0 h-20 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700/80 px-3 flex items-center justify-around z-30 shadow-2xl">
             <button onclick="switchTab('local')" id="nav-local" class="nav-btn flex flex-col items-center justify-center w-full h-full text-brand-500 transition-all active:scale-95">
                 <i data-lucide="book-open" class="w-6 h-6 mb-1"></i>
                 <span class="text-[11px] font-semibold">My Books</span>
@@ -97,7 +97,7 @@
 
         <!-- Recipe Detail Modal -->
         <div id="recipe-modal" class="fixed inset-0 bg-slate-900 z-40 hidden flex flex-col overflow-hidden">
-            <div class="px-4 py-3.5 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+            <div class="px-4 py-3.5 bg-slate-800 border-b border-slate-700 flex-shrink-0 flex items-center justify-between">
                 <button onclick="closeRecipeModal()" class="p-3 rounded-xl bg-slate-700 text-slate-200 hover:text-white active:scale-95">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </button>
@@ -112,12 +112,12 @@
                 </div>
             </div>
 
-            <div id="modal-content" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-32"></div>
+            <div id="modal-content" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-20"></div>
         </div>
 
         <!-- Full-Screen Interactive Cooking Overlay -->
         <div id="fullscreen-cooking-overlay" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col overflow-hidden">
-            <div class="px-4 py-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="px-4 py-3.5 bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
                     <span id="fs-recipe-title" class="font-bold text-sm text-white truncate max-w-[200px]">Cooking Mode</span>
@@ -417,7 +417,27 @@
             container.innerHTML = html;
         }
 
-        function handleRecipeClick(recipeId, isLocal) {
+        async function handleRecipeClick(recipeId, isLocal) {
+            if (!isLocal) {
+                // Find in onlineResults
+                const recipe = onlineResults.find(r => r.id === recipeId);
+                // If it's a Spoonacular recipe and lacks proper steps/ingredients, fetch full info on the fly
+                if (recipe && recipe.source === 'Spoonacular' && recipe._rawId && (!recipe.ingredients || recipe.ingredients.length <= 1 || recipe.steps.length <= 1)) {
+                    showToast("Fetching full recipe details...");
+                    try {
+                        const res = await fetch(`https://api.spoonacular.com/recipes/${recipe._rawId}/information?apiKey=1ace6de432cc42f0bb84f80bd40aff8f&includeNutrition=true`);
+                        if (res.ok) {
+                            const detailedData = await res.json();
+                            const parsed = parseSpoonacular(detailedData, 'Spoonacular');
+                            parsed.id = recipe.id; // preserve id
+                            const idx = onlineResults.findIndex(r => r.id === recipeId);
+                            if (idx !== -1) onlineResults[idx] = parsed;
+                        }
+                    } catch(e) {
+                        console.error("Failed to fetch detailed Spoonacular info", e);
+                    }
+                }
+            }
             openRecipeModal(recipeId, isLocal);
         }
 
@@ -605,7 +625,6 @@
         }
 
         function parseSpoonacular(sp, sourceName) {
-            // Robust check 1: Extended Ingredients array
             let ingredients = [];
             if (Array.isArray(sp.extendedIngredients) && sp.extendedIngredients.length > 0) {
                 ingredients = sp.extendedIngredients.map(i => ({
@@ -615,15 +634,8 @@
                 }));
             } else if (Array.isArray(sp.ingredients) && sp.ingredients.length > 0) {
                 ingredients = sp.ingredients.map(i => (typeof i === 'string' ? { name: i, quantity: 1, unit: 'unit' } : { name: i.name || 'Ingredient', quantity: i.amount || 1, unit: i.unit || 'unit' }));
-            } else if (sp.nutrition?.ingredients && Array.isArray(sp.nutrition.ingredients)) {
-                ingredients = sp.nutrition.ingredients.map(i => ({
-                    name: i.name || 'Ingredient',
-                    quantity: i.amount || 1,
-                    unit: i.unit || 'unit'
-                }));
             }
 
-            // Robust check 2: Analyzed Instructions or raw instructions or summary
             let steps = [];
             if (Array.isArray(sp.analyzedInstructions) && sp.analyzedInstructions.length > 0 && Array.isArray(sp.analyzedInstructions[0].steps)) {
                 steps = sp.analyzedInstructions[0].steps.map(st => {
@@ -651,7 +663,6 @@
                 });
             }
 
-            // Fallback: If summary is present, extract sentences from summary as steps
             if (steps.length === 0 && typeof sp.summary === 'string' && sp.summary.trim().length > 0) {
                 const cleanSummary = sp.summary.replace(/<[^>]*>?/gm, '');
                 const rawSentences = cleanSummary.split(/\. /).filter(s => s.trim().length > 10);
@@ -662,7 +673,6 @@
                 }));
             }
 
-            // Ultimate safety fallback so cooking mode never errors out
             if (ingredients.length === 0) {
                 ingredients = [{ name: 'Fresh Ingredients as per Recipe', quantity: 1, unit: 'serving' }];
             }
@@ -670,7 +680,6 @@
                 steps = [{ icon: 'utensils', text: `Prepare all ingredients for ${sp.title}, combine thoroughly, cook over medium heat until done, and serve warm.`, duration: 0 }];
             }
 
-            // Extract nutrition safely
             const cal = sp.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || sp.calories || 420;
             const prot = sp.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount || sp.protein || '24g';
             const carbs = sp.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount || sp.carbs || '45g';
@@ -678,6 +687,7 @@
 
             return {
                 id: 'online_sp_' + (sp.id || Math.random().toString(36).substr(2, 9)),
+                _rawId: sp.id, // retained for on-demand fetch if needed
                 title: sp.title || sp.name || 'Untitled Recipe',
                 source: sourceName,
                 servings: sp.servings || 4,
