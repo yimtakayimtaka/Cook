@@ -1,0 +1,77 @@
+{
+    "id": "recipe_teriyaki_chicken",
+    "title": "Japanese Teriyaki Chicken",
+    "source": "local",
+    "servings": 2,
+    "prepTime": "10 mins",
+    "cookTime": "15 mins",
+    "rating": 4,
+    "nutrition": {
+        "calories": 420,
+        "protein": "34g",
+        "carbs": "38g",
+        "fat": "14g"
+    },
+    "dietary": [
+        "Contains Meat"
+    ],
+    "ingredients": [
+        {
+            "name": "Chicken Thighs (Boneless)",
+            "quantity": 400,
+            "unit": "g"
+        },
+        {
+            "name": "Soy Sauce",
+            "quantity": 4,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Mirin / Japanese Rice Wine",
+            "quantity": 2,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Sake / White Cooking Wine",
+            "quantity": 2,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Sugar",
+            "quantity": 1.5,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Sesame Seeds",
+            "quantity": 1,
+            "unit": "tsp"
+        },
+        {
+            "name": "Spring Onions (Sliced)",
+            "quantity": 2,
+            "unit": "stalks"
+        }
+    ],
+    "steps": [
+        {
+            "icon": "bowl",
+            "text": "Whisk soy sauce, mirin, sake, and sugar together in a bowl until sugar dissolves.",
+            "duration": 0
+        },
+        {
+            "icon": "flame",
+            "text": "Pan-fry chicken thighs skin-side down in a hot skillet until crispy and golden.",
+            "duration": 7
+        },
+        {
+            "icon": "droplet",
+            "text": "Pour teriyaki sauce into pan and simmer until sauce thickens to a shiny glaze.",
+            "duration": 5
+        },
+        {
+            "icon": "scissors",
+            "text": "Slice chicken into strips and garnish with sesame seeds and green spring onions.",
+            "duration": 0
+        }
+    ]
+}

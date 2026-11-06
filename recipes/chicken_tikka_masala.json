@@ -1,0 +1,51 @@
+{
+  "id": "loc_tikka_masala",
+  "title": "Chicken Tikka Masala",
+  "source": "local",
+  "servings": 4,
+  "prepTime": "20 mins",
+  "cookTime": "25 mins",
+  "rating": 5,
+  "nutrition": {
+    "calories": 490,
+    "protein": "36g",
+    "carbs": "16g",
+    "fat": "30g"
+  },
+  "dietary": [
+    "Indian",
+    "Contains Meat",
+    "Gluten-Free"
+  ],
+  "ingredients": [
+    { "name": "Chicken Breast (Diced)", "quantity": 600, "unit": "g" },
+    { "name": "Plain Yogurt", "quantity": 150, "unit": "g" },
+    { "name": "Garam Masala", "quantity": 2, "unit": "tbsp" },
+    { "name": "Ground Turmeric", "quantity": 1, "unit": "tsp" },
+    { "name": "Garlic Cloves (Minced)", "quantity": 4, "unit": "cloves" },
+    { "name": "Tomato Passata", "quantity": 400, "unit": "g" },
+    { "name": "Double Cream", "quantity": 120, "unit": "ml" }
+  ],
+  "steps": [
+    {
+      "icon": "bowl",
+      "text": "Mix diced chicken with yogurt, garlic, turmeric, and garam masala in a bowl.",
+      "duration": 0
+    },
+    {
+      "icon": "flame",
+      "text": "Sear marinated chicken pieces in a hot skillet until golden brown.",
+      "duration": 8
+    },
+    {
+      "icon": "droplet",
+      "text": "Pour in tomato passata and double cream. Stir gently to combine.",
+      "duration": 0
+    },
+    {
+      "icon": "timer",
+      "text": "Simmer gently over low heat until sauce is rich and thick.",
+      "duration": 15
+    }
+  ]
+}

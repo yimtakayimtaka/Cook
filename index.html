@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YimCook - Mobile Recipe Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { -webkit-tap-highlight-color: transparent; }
+        @media (min-width: 640px) {
+            .mobile-frame {
+                max-width: 420px;
+                height: 880px;
+                border-radius: 40px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 12px #1f2937;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex items-center justify-center p-0 sm:p-4">
+
+    <!-- Main Mobile Frame -->
+    <div id="app" class="mobile-frame w-full h-screen bg-slate-900 flex flex-col relative overflow-hidden text-slate-100">
+
+        <!-- Header -->
+        <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-30 px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-400 flex items-center justify-center text-white shadow-lg shadow-brand-600/30">
+                    <i data-lucide="utensils" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base tracking-tight leading-none text-white">YimCook</h1>
+                    <span class="text-[10px] text-brand-500 font-semibold uppercase tracking-wider">Mobile Assistant</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="btn-import-header" title="Import JSON Recipe" onclick="triggerImport()" class="p-3 rounded-xl bg-slate-700/80 text-slate-200 hover:text-white active:scale-95 transition-all">
+                    <i data-lucide="upload" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Hidden Import File Input -->
+        <input type="file" id="file-import" accept=".json" class="hidden" onchange="handleImportFile(event)">
+
+        <!-- Dynamic Content View Area -->
+        <main id="content-area" class="flex-1 overflow-y-auto no-scrollbar pb-28 p-4">
+            <!-- Rendered via JS -->
+        </main>
+
+        <!-- Bottom Navigation Bar (Touch-Optimized) -->
+        <nav class="absolute bottom-0 left-0 right-0 h-20 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700/80 px-3 flex items-center justify-around z-30 shadow-2xl">
+            <button onclick="switchTab('local')" id="nav-local" class="nav-btn flex flex-col items-center justify-center w-full h-full text-brand-500 transition-all active:scale-95">
+                <i data-lucide="book-open" class="w-6 h-6 mb-1"></i>
+                <span class="text-[11px] font-semibold">My Books</span>
+            </button>
+            <button onclick="switchTab('online')" id="nav-online" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-200 transition-all active:scale-95">
+                <i data-lucide="globe" class="w-6 h-6 mb-1"></i>
+                <span class="text-[11px] font-semibold">Explore</span>
+            </button>
+            <button onclick="switchTab('paused')" id="nav-paused" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-200 transition-all relative active:scale-95">
+                <i data-lucide="timer" class="w-6 h-6 mb-1"></i>
+                <span class="text-[11px] font-semibold">In-Progress</span>
+                <span id="badge-paused" class="hidden absolute top-3 right-5 w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
+            </button>
+            <button onclick="switchTab('sources')" id="nav-sources" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-200 transition-all active:scale-95">
+                <i data-lucide="settings" class="w-6 h-6 mb-1"></i>
+                <span class="text-[11px] font-semibold">Sources</span>
+            </button>
+        </nav>
+
+        <!-- Recipe Detail Modal -->
+        <div id="recipe-modal" class="fixed inset-0 bg-slate-900 z-40 hidden flex flex-col overflow-hidden">
+            <div class="px-4 py-3.5 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+                <button onclick="closeRecipeModal()" class="p-3 rounded-xl bg-slate-700 text-slate-200 hover:text-white active:scale-95">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <span id="modal-title" class="font-semibold text-sm truncate max-w-[200px]">Recipe View</span>
+                <div class="flex items-center gap-2">
+                    <button id="btn-export-modal" onclick="exportCurrentRecipe()" class="p-3 rounded-xl bg-slate-700 text-brand-400 hover:text-brand-300 active:scale-95">
+                        <i data-lucide="download" class="w-6 h-6"></i>
+                    </button>
+                    <button id="btn-save-online-modal" onclick="saveOnlineToLocal()" class="hidden p-3 rounded-xl bg-emerald-600 text-white active:scale-95">
+                        <i data-lucide="bookmark-plus" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="modal-content" class="flex-1 overflow-y-auto no-scrollbar p-4 pb-32"></div>
+        </div>
+
+        <!-- Full-Screen Interactive Cooking Overlay -->
+        <div id="fullscreen-cooking-overlay" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col overflow-hidden">
+            <div class="px-4 py-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
+                    <span id="fs-recipe-title" class="font-bold text-sm text-white truncate max-w-[200px]">Cooking Mode</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="pauseCookingSessionFromFS()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 active:scale-95">
+                        <i data-lucide="pause" class="w-4 h-4"></i> Pause
+                    </button>
+                    <button onclick="exitFullscreenCooking()" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 active:scale-95">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="fs-wizard-body" class="flex-1 p-4 flex flex-col justify-between overflow-y-auto no-scrollbar"></div>
+        </div>
+
+        <!-- Toast Notification Popup -->
+        <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-2xl z-50 transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2.5">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            <span id="toast-msg">Notification</span>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. DEFAULT RECIPES ---
+        const BUILTIN_RECIPES = [
+            {
+                id: "loc_pizza",
+                title: "Margherita Pizza",
+                source: "local",
+                servings: 2,
+                prepTime: "20 mins",
+                cookTime: "15 mins",
+                rating: 5,
+                nutrition: { calories: 580, protein: "22g", carbs: "74g", fat: "20g" },
+                dietary: ["Vegetarian"],
+                ingredients: [
+                    { name: "Pizza Flour / Bread Flour", quantity: 250, unit: "g" },
+                    { name: "Instant Yeast", quantity: 5, unit: "g" },
+                    { name: "Warm Water", quantity: 150, unit: "ml" },
+                    { name: "Passata / Tomato Sauce", quantity: 120, unit: "ml" },
+                    { name: "Fresh Mozzarella", quantity: 125, unit: "g" },
+                    { name: "Fresh Basil Leaves", quantity: 8, unit: "leaves" }
+                ],
+                steps: [
+                    { icon: "bowl", text: "Mix flour, yeast, and warm water in a bowl. Knead for 8 minutes until smooth.", duration: 0 },
+                    { icon: "timer", text: "Cover dough and leave in a warm spot to rise.", duration: 30 },
+                    { icon: "flame", text: "Preheat oven to 230°C (450°F) or highest setting.", duration: 0 },
+                    { icon: "disc", text: "Stretch dough into a 10-inch circle on a baking sheet.", duration: 0 },
+                    { icon: "utensils", text: "Spread passata evenly and top with torn mozzarella slices.", duration: 0 },
+                    { icon: "timer", text: "Bake in the hot oven until crust is golden and cheese bubbles.", duration: 12 }
+                ]
+            },
+            {
+                id: "loc_fairy",
+                title: "Classic Fairy Cakes",
+                source: "local",
+                servings: 12,
+                prepTime: "15 mins",
+                cookTime: "15 mins",
+                rating: 4,
+                nutrition: { calories: 140, protein: "2g", carbs: "18g", fat: "7g" },
+                dietary: ["Vegetarian"],
+                ingredients: [
+                    { name: "Unsalted Butter (Softened)", quantity: 110, unit: "g" },
+                    { name: "Caster Sugar", quantity: 110, unit: "g" },
+                    { name: "Self-Raising Flour", quantity: 110, unit: "g" },
+                    { name: "Eggs", quantity: 2, unit: "large" }
+                ],
+                steps: [
+                    { icon: "flame", text: "Preheat oven to 180°C (350°F) and line a 12-hole muffin tray.", duration: 0 },
+                    { icon: "bowl", text: "Beat butter and sugar together until light and fluffy.", duration: 0 },
+                    { icon: "egg", text: "Whisk in eggs one at a time with vanilla extract.", duration: 0 },
+                    { icon: "timer", text: "Bake in oven until golden and springy to touch.", duration: 15 }
+                ]
+            }
+        ];
+
+        // --- VISUAL KEYWORD BADGES MAP ---
+        const VISUAL_KEYWORD_MAP = {
+            'cut': { icon: 'scissors', label: 'Cut', color: 'text-amber-400 bg-amber-400/10' },
+            'slice': { icon: 'scissors', label: 'Slice', color: 'text-amber-400 bg-amber-400/10' },
+            'chop': { icon: 'scissors', label: 'Chop', color: 'text-amber-400 bg-amber-400/10' },
+            'mix': { icon: 'blend', label: 'Mix', color: 'text-blue-400 bg-blue-400/10' },
+            'whisk': { icon: 'blend', label: 'Whisk', color: 'text-blue-400 bg-blue-400/10' },
+            'stir': { icon: 'utensils-crossed', label: 'Stir', color: 'text-blue-400 bg-blue-400/10' },
+            'fry': { icon: 'flame', label: 'Fry', color: 'text-rose-400 bg-rose-400/10' },
+            'bake': { icon: 'microwave', label: 'Bake', color: 'text-orange-400 bg-orange-400/10' },
+            'boil': { icon: 'waves', label: 'Boil', color: 'text-cyan-400 bg-cyan-400/10' },
+            'oven': { icon: 'microwave', label: 'Oven', color: 'text-orange-400 bg-orange-400/10' },
+            'pan': { icon: 'cooking-pot', label: 'Pan', color: 'text-emerald-400 bg-emerald-400/10' },
+            'saucepan': { icon: 'cooking-pot', label: 'Saucepan', color: 'text-emerald-400 bg-emerald-400/10' },
+            'wok': { icon: 'cooking-pot', label: 'Wok', color: 'text-emerald-400 bg-emerald-400/10' },
+            'egg': { icon: 'egg', label: 'Egg', color: 'text-amber-300 bg-amber-300/10' },
+            'chicken': { icon: 'drumstick', label: 'Chicken', color: 'text-amber-500 bg-amber-500/10' },
+            'salmon': { icon: 'fish', label: 'Fish', color: 'text-rose-300 bg-rose-300/10' }
+        };
+
+        function getVisualBadgesForText(text) {
+            const lower = (text || '').toLowerCase();
+            const badges = [];
+            const foundKeys = new Set();
+
+            for (const [key, info] of Object.entries(VISUAL_KEYWORD_MAP)) {
+                if (lower.includes(key) && !foundKeys.has(info.label)) {
+                    foundKeys.add(info.label);
+                    badges.push(`
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${info.color} border border-current/20">
+                            <i data-lucide="${info.icon}" class="w-3 h-3"></i> ${info.label}
+                        </span>
+                    `);
+                }
+            }
+            return badges.join(' ');
+        }
+
+        // --- 2. STATE ---
+        let currentTab = 'local';
+        let localRecipes = [];
+        let onlineResults = [];
+        let activeRecipe = null;
+        let scaledServings = 1;
+        let pausedState = null;
+        let currentFSStepIndex = 0;
+        let timerInterval = null;
+        let timerSecondsRemaining = 0;
+        let timerOriginalSeconds = 0;
+        let isTimerRunning = false;
+        
+        let apiSources = [
+            { id: 'themealdb', name: 'TheMealDB Free API', enabled: true, url: 'https://www.themealdb.com/api/json/v1/1/search.php?s=' },
+            { id: 'dummyjson', name: 'DummyJSON Recipes', enabled: true, url: 'https://dummyjson.com/recipes/search?q=' },
+            { id: 'spoonacular', name: 'Spoonacular Asian & Indian API', enabled: true, url: 'https://api.spoonacular.com/recipes/complexSearch?apiKey=1ace6de432cc42f0bb84f80bd40aff8f&addRecipeInformation=true&query=' },
+            { id: 'tasty_asian', name: 'Tasty Regional Asian Feed', enabled: true, url: 'https://www.themealdb.com/api/json/v1/1/filter.php?a=Indian' }
+        ];
+
+        // Known recipe JSON paths in recipes/ folder to auto-load
+        const LOCAL_FOLDER_RECIPE_FILES = [
+            'recipes/chicken_tikka_masala.json',
+            'recipes/japanese_teriyaki_chicken.json',
+            'recipes/szechuan_kung_pao_chicken.json'
+        ];
+
+        // --- 3. INIT & AUTO-SCAN LOCAL RECIPES FOLDER ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initApp();
+        });
+
+        async function initApp() {
+            const savedLocal = localStorage.getItem('gourmet_local_recipes');
+            if (savedLocal) {
+                try { localRecipes = JSON.parse(savedLocal); } catch(e) { localRecipes = [...BUILTIN_RECIPES]; }
+            } else {
+                localRecipes = [...BUILTIN_RECIPES];
+            }
+
+            // Auto-load recipes from local recipes/ directory
+            await loadLocalFolderRecipes();
+
+            const savedPaused = localStorage.getItem('gourmet_paused_session');
+            if (savedPaused) {
+                try {
+                    pausedState = JSON.parse(savedPaused);
+                    document.getElementById('badge-paused').classList.remove('hidden');
+                } catch(e) {}
+            }
+
+            const savedSources = localStorage.getItem('gourmet_api_sources');
+            if (savedSources) {
+                try { apiSources = JSON.parse(savedSources); } catch(e) {}
+            }
+
+            lucide.createIcons();
+            switchTab('local');
+        }
+
+        async function loadLocalFolderRecipes() {
+            for (let path of LOCAL_FOLDER_RECIPE_FILES) {
+                try {
+                    const res = await fetch(path);
+                    if (res.ok) {
+                        const rec = await res.json();
+                        rec.source = 'local';
+                        if (!localRecipes.some(r => r.id === rec.id)) {
+                            localRecipes.push(rec);
+                        }
+                    }
+                } catch(e) {
+                    console.log(`Note: File ${path} not directly accessible via HTTP fetch. Use Upload button if running without a local web server.`);
+                }
+            }
+            saveLocalRecipesToStorage();
+        }
+
+        function saveLocalRecipesToStorage() {
+            localStorage.setItem('gourmet_local_recipes', JSON.stringify(localRecipes));
+        }
+
+        function savePausedStateToStorage() {
+            if (pausedState) {
+                localStorage.setItem('gourmet_paused_session', JSON.stringify(pausedState));
+                document.getElementById('badge-paused').classList.remove('hidden');
+            } else {
+                localStorage.removeItem('gourmet_paused_session');
+                document.getElementById('badge-paused').classList.add('hidden');
+            }
+        }
+
+        // --- 4. NAVIGATION ---
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-500');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`nav-${tab}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400');
+                activeBtn.classList.add('text-brand-500');
+            }
+
+            const main = document.getElementById('content-area');
+            main.innerHTML = '';
+
+            if (tab === 'local') renderLocalTab(main);
+            else if (tab === 'online') renderOnlineTab(main);
+            else if (tab === 'paused') renderPausedTab(main);
+            else if (tab === 'sources') renderSourcesTab(main);
+
+            lucide.createIcons();
+        }
+
+        // --- 5. RENDER LOCAL TAB ---
+        function renderLocalTab(container) {
+            renderRecipeList(container, localRecipes, "My Recipe Collection", true);
+        }
+
+        function renderRecipeList(container, list, title, isLocal) {
+            let html = `
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <span>${title}</span>
+                        <span class="text-xs font-normal text-slate-400">(${list.length})</span>
+                    </h2>
+                </div>
+            `;
+
+            if (list.length === 0) {
+                html += `
+                    <div class="text-center py-12 text-slate-500">
+                        <i data-lucide="book-open-check" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
+                        <p class="text-sm">No recipes found.</p>
+                    </div>
+                `;
+            } else {
+                html += `<div class="grid grid-cols-1 gap-3">`;
+                list.forEach(recipe => {
+                    const solidStarsCount = Math.round(recipe.rating || 5);
+                    const stars = '★'.repeat(solidStarsCount); // Solid stars only!
+                    const sourceTag = `[${recipe.source || (isLocal ? 'local' : 'online')}]`;
+                    const tags = (recipe.dietary || []).map(d => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300">${d}</span>`).join(' ');
+
+                    html += `
+                        <div onclick="handleRecipeClick('${recipe.id}', ${isLocal})" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
+                            <div class="flex-1 pr-3">
+                                <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                                    <h3 class="font-bold text-sm text-slate-100">${recipe.title}</h3>
+                                    <span class="text-[11px] font-mono text-brand-400 font-semibold">${sourceTag}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                                    <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${recipe.cookTime || '20m'}</span>
+                                    <span>•</span>
+                                    <span class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Serves ${recipe.servings}</span>
+                                    <span>•</span>
+                                    <span class="text-amber-400 font-bold tracking-widest text-xs">${stars}</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1">${tags}</div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                ${isLocal ? `
+                                    <button onclick="deleteLocalRecipe(event, '${recipe.id}')" title="Delete Recipe" class="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                ` : ''}
+                                <div class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center text-slate-400">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function handleRecipeClick(recipeId, isLocal) {
+            openRecipeModal(recipeId, isLocal);
+        }
+
+        function deleteLocalRecipe(e, recipeId) {
+            e.stopPropagation();
+            const rec = localRecipes.find(r => r.id === recipeId);
+            const title = rec ? rec.title : "this recipe";
+
+            if (confirm(`Are you sure you want to delete "${title}" from My Books?`)) {
+                localRecipes = localRecipes.filter(r => r.id !== recipeId);
+                saveLocalRecipesToStorage();
+                
+                if (pausedState && pausedState.recipe.id === recipeId) {
+                    pausedState = null;
+                    savePausedStateToStorage();
+                }
+
+                if (currentTab === 'local') {
+                    renderLocalTab(document.getElementById('content-area'));
+                }
+                lucide.createIcons();
+                showToast(`Deleted "${title}"`);
+            }
+        }
+
+        // --- 6. EXPLORE ONLINE TAB & REGIONAL MULTI-SEARCH ---
+        function renderOnlineTab(container) {
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-white mb-2">Explore Indian & Asian Recipes</h2>
+                    <div class="flex gap-2 mb-3">
+                        <div class="relative flex-1">
+                            <input type="text" id="search-online-input" placeholder="Search Samosa, Curry, Ramen, Tikka..." 
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pl-10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-brand-500">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                        </div>
+                        <button onclick="performOnlineSearch()" class="px-5 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-lg shadow-brand-600/20">
+                            Search
+                        </button>
+                    </div>
+
+                    <!-- Quick Regional Presets -->
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        <button onclick="quickSearchRegional('Samosa')" class="px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-amber-400 font-medium whitespace-nowrap active:scale-95">🥟 Samosa</button>
+                        <button onclick="quickSearchRegional('Indian Curry')" class="px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-amber-400 font-medium whitespace-nowrap active:scale-95">🇮🇳 Indian Curry</button>
+                        <button onclick="quickSearchRegional('Japanese Ramen')" class="px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-rose-400 font-medium whitespace-nowrap active:scale-95">🇯🇵 Japanese Ramen</button>
+                        <button onclick="quickSearchRegional('Chinese Stir Fry')" class="px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-emerald-400 font-medium whitespace-nowrap active:scale-95">🇨🇳 Chinese Stir Fry</button>
+                    </div>
+                </div>
+                <div id="online-results-container">
+                    <div class="text-center py-12 text-slate-500">
+                        <i data-lucide="globe-2" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
+                        <p class="text-xs">Search online sources to discover regional Asian & Indian dishes.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function quickSearchRegional(term) {
+            document.getElementById('search-online-input').value = term;
+            performOnlineSearch();
+        }
+
+        async function performOnlineSearch() {
+            const query = document.getElementById('search-online-input').value.trim();
+            if (!query) return;
+
+            const resultsContainer = document.getElementById('online-results-container');
+            resultsContainer.innerHTML = `
+                <div class="text-center py-12 text-slate-400">
+                    <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin text-brand-500"></i>
+                    <p class="text-xs">Querying Asian & Indian Recipe Sources...</p>
+                </div>
+            `;
+            lucide.createIcons();
+
+            onlineResults = [];
+            const activeSources = apiSources.filter(s => s.enabled);
+
+            for (let source of activeSources) {
+                try {
+                    let fetchUrl = source.url + encodeURIComponent(query);
+                    if (source.id === 'tasty_asian') {
+                        fetchUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`;
+                    }
+
+                    const res = await fetch(fetchUrl);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+
+                    if (source.id === 'themealdb' && data.meals) {
+                        data.meals.forEach(meal => onlineResults.push(parseTheMealDB(meal, 'TheMealDB')));
+                    } else if (source.id === 'dummyjson' && data.recipes) {
+                        data.recipes.forEach(rec => onlineResults.push(parseDummyJSON(rec, 'DummyJSON')));
+                    } else if (source.id === 'spoonacular' && (data.results || Array.isArray(data))) {
+                        const items = data.results || (Array.isArray(data) ? data : []);
+                        items.forEach(sp => onlineResults.push(parseSpoonacular(sp, 'Spoonacular')));
+                    } else if (source.id === 'tasty_asian' && data.meals) {
+                        data.meals.slice(0, 4).forEach(meal => onlineResults.push(parseTheMealDB(meal, 'TastyAsia')));
+                    }
+                } catch(e) {
+                    console.error("Error fetching source: " + source.name, e);
+                }
+            }
+
+            if (onlineResults.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-500">
+                        <i data-lucide="frown" class="w-10 h-10 mx-auto mb-2 stroke-1"></i>
+                        <p class="text-xs">No online recipes found matching "${query}".</p>
+                    </div>
+                `;
+            } else {
+                renderRecipeList(resultsContainer, onlineResults, "Search Results", false);
+            }
+            lucide.createIcons();
+        }
+
+        function parseTheMealDB(meal, sourceName) {
+            const ingredients = [];
+            for (let i = 1; i <= 20; i++) {
+                const ing = meal[`strIngredient${i}`];
+                const measure = meal[`strMeasure${i}`];
+                if (ing && ing.trim()) {
+                    const numMatch = (measure || '').match(/[\d\.]+/);
+                    const qty = numMatch ? parseFloat(numMatch[0]) : 1;
+                    const unit = (measure || '').replace(/[\d\.]+/, '').trim() || 'item';
+                    ingredients.push({ name: ing.trim(), quantity: qty, unit: unit });
+                }
+            }
+
+            const rawSteps = (meal.strInstructions || '').split(/\r?\n/).filter(s => s.trim().length > 5);
+            const steps = rawSteps.map(st => {
+                const timeMatch = st.match(/(\d+)\s*(mins|minutes|min)/i);
+                return {
+                    icon: timeMatch ? 'timer' : 'utensils',
+                    text: st.trim(),
+                    duration: timeMatch ? parseInt(timeMatch[1]) : 0
+                };
+            });
+
+            return {
+                id: 'online_mealdb_' + (meal.idMeal || Math.random().toString(36).substr(2, 9)),
+                title: meal.strMeal || 'Untitled Recipe',
+                source: sourceName,
+                servings: 4,
+                prepTime: '15 mins',
+                cookTime: '25 mins',
+                rating: 5,
+                nutrition: { calories: 520, protein: '25g', carbs: '45g', fat: '18g' },
+                dietary: [meal.strArea || meal.strCategory || 'Asian/Global'],
+                ingredients: ingredients.length > 0 ? ingredients : [{ name: 'Assorted Ingredients', quantity: 1, unit: 'pack' }],
+                steps: steps.length > 0 ? steps : [{ icon: 'utensils', text: meal.strInstructions || 'Prepare ingredients and cook to taste.', duration: 0 }]
+            };
+        }
+
+        function parseDummyJSON(rec, sourceName) {
+            const ingredients = (rec.ingredients || []).map(i => {
+                if (typeof i === 'object') return { name: i.name || 'Ingredient', quantity: i.quantity || 1, unit: i.unit || 'serving' };
+                return { name: i, quantity: 1, unit: 'serving' };
+            });
+            const steps = (rec.instructions || []).map(inst => {
+                const textStr = typeof inst === 'string' ? inst : (inst.text || '');
+                const timeMatch = textStr.match(/(\d+)\s*(mins|minutes|min)/i);
+                return {
+                    icon: timeMatch ? 'timer' : 'utensils',
+                    text: textStr,
+                    duration: timeMatch ? parseInt(timeMatch[1]) : 0
+                };
+            });
+
+            return {
+                id: 'online_dummy_' + (rec.id || Math.random().toString(36).substr(2, 9)),
+                title: rec.name || 'Untitled Recipe',
+                source: sourceName,
+                servings: rec.servings || 4,
+                prepTime: (rec.prepTimeMinutes || 10) + ' mins',
+                cookTime: (rec.cookTimeMinutes || 20) + ' mins',
+                rating: Math.max(1, Math.min(5, Math.round(rec.rating || 4))),
+                nutrition: { calories: rec.caloriesPerServing || 400, protein: '20g', carbs: '40g', fat: '15g' },
+                dietary: rec.tags || ['Global'],
+                ingredients: ingredients.length > 0 ? ingredients : [{ name: 'Assorted Ingredients', quantity: 1, unit: 'serving' }],
+                steps: steps.length > 0 ? steps : [{ icon: 'utensils', text: 'Follow standard preparation steps.', duration: 0 }]
+            };
+        }
+
+        function parseSpoonacular(sp, sourceName) {
+            // Robust check 1: Extended Ingredients array
+            let ingredients = [];
+            if (Array.isArray(sp.extendedIngredients) && sp.extendedIngredients.length > 0) {
+                ingredients = sp.extendedIngredients.map(i => ({
+                    name: i.nameClean || i.name || i.originalName || i.original || 'Ingredient',
+                    quantity: i.amount ? parseFloat(i.amount.toFixed(1)) : 1,
+                    unit: i.unit || i.measures?.metric?.unitShort || 'unit'
+                }));
+            } else if (Array.isArray(sp.ingredients) && sp.ingredients.length > 0) {
+                ingredients = sp.ingredients.map(i => (typeof i === 'string' ? { name: i, quantity: 1, unit: 'unit' } : { name: i.name || 'Ingredient', quantity: i.amount || 1, unit: i.unit || 'unit' }));
+            } else if (sp.nutrition?.ingredients && Array.isArray(sp.nutrition.ingredients)) {
+                ingredients = sp.nutrition.ingredients.map(i => ({
+                    name: i.name || 'Ingredient',
+                    quantity: i.amount || 1,
+                    unit: i.unit || 'unit'
+                }));
+            }
+
+            // Robust check 2: Analyzed Instructions or raw instructions or summary
+            let steps = [];
+            if (Array.isArray(sp.analyzedInstructions) && sp.analyzedInstructions.length > 0 && Array.isArray(sp.analyzedInstructions[0].steps)) {
+                steps = sp.analyzedInstructions[0].steps.map(st => {
+                    const textStr = st.step || st.instruction || '';
+                    const timeMatch = textStr.match(/(\d+)\s*(mins|minutes|min)/i);
+                    const dur = st.length?.number || (timeMatch ? parseInt(timeMatch[1]) : 0);
+                    return {
+                        icon: dur > 0 ? 'timer' : 'utensils',
+                        text: textStr,
+                        duration: dur
+                    };
+                });
+            }
+
+            if (steps.length === 0 && typeof sp.instructions === 'string' && sp.instructions.trim().length > 0) {
+                const cleanInstructions = sp.instructions.replace(/<[^>]*>?/gm, '');
+                const rawSentences = cleanInstructions.split(/\r?\n|\. /).filter(s => s.trim().length > 5);
+                steps = rawSentences.map(st => {
+                    const timeMatch = st.match(/(\d+)\s*(mins|minutes|min)/i);
+                    return {
+                        icon: timeMatch ? 'timer' : 'utensils',
+                        text: st.trim() + (st.endsWith('.') ? '' : '.'),
+                        duration: timeMatch ? parseInt(timeMatch[1]) : 0
+                    };
+                });
+            }
+
+            // Fallback: If summary is present, extract sentences from summary as steps
+            if (steps.length === 0 && typeof sp.summary === 'string' && sp.summary.trim().length > 0) {
+                const cleanSummary = sp.summary.replace(/<[^>]*>?/gm, '');
+                const rawSentences = cleanSummary.split(/\. /).filter(s => s.trim().length > 10);
+                steps = rawSentences.slice(0, 5).map(st => ({
+                    icon: 'utensils',
+                    text: st.trim() + (st.endsWith('.') ? '' : '.'),
+                    duration: 0
+                }));
+            }
+
+            // Ultimate safety fallback so cooking mode never errors out
+            if (ingredients.length === 0) {
+                ingredients = [{ name: 'Fresh Ingredients as per Recipe', quantity: 1, unit: 'serving' }];
+            }
+            if (steps.length === 0) {
+                steps = [{ icon: 'utensils', text: `Prepare all ingredients for ${sp.title}, combine thoroughly, cook over medium heat until done, and serve warm.`, duration: 0 }];
+            }
+
+            // Extract nutrition safely
+            const cal = sp.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || sp.calories || 420;
+            const prot = sp.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount || sp.protein || '24g';
+            const carbs = sp.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount || sp.carbs || '45g';
+            const fat = sp.nutrition?.nutrients?.find(n => n.name === 'Fat')?.amount || sp.fat || '16g';
+
+            return {
+                id: 'online_sp_' + (sp.id || Math.random().toString(36).substr(2, 9)),
+                title: sp.title || sp.name || 'Untitled Recipe',
+                source: sourceName,
+                servings: sp.servings || 4,
+                prepTime: '15 mins',
+                cookTime: (sp.readyInMinutes || 25) + ' mins',
+                rating: Math.max(1, Math.min(5, Math.round(sp.healthScore ? (sp.healthScore / 20) : 5))),
+                nutrition: {
+                    calories: Math.round(cal),
+                    protein: typeof prot === 'number' ? Math.round(prot) + 'g' : prot,
+                    carbs: typeof carbs === 'number' ? Math.round(carbs) + 'g' : carbs,
+                    fat: typeof fat === 'number' ? Math.round(fat) + 'g' : fat
+                },
+                dietary: (sp.cuisines && sp.cuisines.length > 0) ? sp.cuisines : (sp.dishTypes || ['Asian/Global']),
+                ingredients: ingredients,
+                steps: steps
+            };
+        }
+
+        // --- 7. PAUSED TAB ---
+        function renderPausedTab(container) {
+            if (!pausedState) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-500">
+                        <i data-lucide="timer-off" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
+                        <h3 class="text-sm font-semibold text-slate-300 mb-1">No Active Cooking Session</h3>
+                        <p class="text-xs max-w-[240px] mx-auto">Paused step progress and ingredients appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const rec = pausedState.recipe;
+            const currentStep = rec.steps[pausedState.stepIndex];
+
+            container.innerHTML = `
+                <div class="bg-gradient-to-br from-brand-900/40 to-slate-800 border border-brand-500/30 rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center gap-1">
+                            <i data-lucide="pause-circle" class="w-3.5 h-3.5"></i> PAUSED SESSION
+                        </span>
+                        <span class="text-xs text-slate-400">Step ${pausedState.stepIndex + 1} of ${rec.steps.length}</span>
+                    </div>
+
+                    <h2 class="text-lg font-bold text-white mb-1">${rec.title} <span class="text-xs text-brand-400 font-mono">[${rec.source || 'local'}]</span></h2>
+                    <p class="text-xs text-slate-400 mb-4">Scaled for ${pausedState.scaledServings} servings</p>
+
+                    <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-700/60 mb-4">
+                        <span class="text-[10px] font-semibold text-brand-400 uppercase tracking-wider block mb-1">Current Step:</span>
+                        <p class="text-xs text-slate-200 leading-relaxed">${currentStep ? currentStep.text : 'Complete'}</p>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="resumeCookingSession()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30">
+                            <i data-lucide="play" class="w-4 h-4"></i> Resume Cooking
+                        </button>
+                        <button onclick="clearPausedSession()" class="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">
+                            Discard
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resumeCookingSession() {
+            if (!pausedState) return;
+            activeRecipe = pausedState.recipe;
+            scaledServings = pausedState.scaledServings;
+            openRecipeModal(activeRecipe.id, true, pausedState.stepIndex);
+        }
+
+        function clearPausedSession() {
+            pausedState = null;
+            savePausedStateToStorage();
+            switchTab('paused');
+            showToast("Paused session discarded");
+        }
+
+        // --- 8. SOURCES CONFIG TAB ---
+        function renderSourcesTab(container) {
+            let html = `
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-white mb-1">Recipe Sources & APIs</h2>
+                    <p class="text-xs text-slate-400">Configure global APIs used for multi-source search.</p>
+                </div>
+                <div class="space-y-3 mb-6">
+            `;
+
+            apiSources.forEach(src => {
+                html += `
+                    <div class="bg-slate-800 border border-slate-700/80 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-xs text-slate-200 mb-0.5">${src.name}</h3>
+                            <p class="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">${src.url}</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${src.enabled ? 'checked' : ''} onchange="toggleApiSource('${src.id}')" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+                    <h3 class="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
+                        <i data-lucide="file-json" class="w-4 h-4 text-brand-400"></i> Local JSON Recipe Tools
+                    </h3>
+                    <p class="text-[11px] text-slate-400 mb-3">Upload custom .json recipe files or scan the local recipes/ folder.</p>
+                    <button onclick="triggerImport()" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
+                        <i data-lucide="upload" class="w-4 h-4"></i> Upload Recipe JSON File
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function toggleApiSource(id) {
+            const src = apiSources.find(s => s.id === id);
+            if (src) src.enabled = !src.enabled;
+            localStorage.setItem('gourmet_api_sources', JSON.stringify(apiSources));
+            showToast("API sources updated");
+        }
+
+        // --- 9. MODAL & COOKING WIZARD ---
+        function openRecipeModal(recipeId, isLocal, initialStepIndex = 0) {
+            if (isLocal) {
+                activeRecipe = localRecipes.find(r => r.id === recipeId);
+                document.getElementById('btn-save-online-modal').classList.add('hidden');
+            } else {
+                activeRecipe = onlineResults.find(r => r.id === recipeId);
+                document.getElementById('btn-save-online-modal').classList.remove('hidden');
+            }
+
+            if (!activeRecipe) return;
+
+            scaledServings = activeRecipe.servings || 4;
+            document.getElementById('modal-title').textContent = `${activeRecipe.title} [${activeRecipe.source || 'local'}]`;
+            document.getElementById('recipe-modal').classList.remove('hidden');
+
+            renderModalContent(initialStepIndex);
+            lucide.createIcons();
+        }
+
+        function closeRecipeModal() {
+            document.getElementById('recipe-modal').classList.add('hidden');
+            stopStepTimer();
+        }
+
+        function updateServings(delta) {
+            const newServings = scaledServings + delta;
+            if (newServings >= 1 && newServings <= 32) {
+                scaledServings = newServings;
+                renderModalContent();
+                lucide.createIcons();
+            }
+        }
+
+        function renderModalContent(stepIndex = 0) {
+            const container = document.getElementById('modal-content');
+            const scaleFactor = scaledServings / (activeRecipe.servings || 1);
+
+            const ingredientsList = (activeRecipe.ingredients || []).map(ing => {
+                const scaledQty = (ing.quantity * scaleFactor).toFixed(1).replace(/\.0$/, '');
+                const visualBadges = getVisualBadgesForText(ing.name);
+                return `
+                    <div class="flex items-center justify-between py-2.5 border-b border-slate-800 text-xs">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-slate-200 font-medium">${ing.name}</span>
+                            ${visualBadges}
+                        </div>
+                        <span class="text-brand-400 font-bold whitespace-nowrap pl-2">${scaledQty} ${ing.unit}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const baseCal = parseInt(activeRecipe.nutrition?.calories || 350);
+            const baseProt = parseInt(activeRecipe.nutrition?.protein || 15);
+            const baseCarbs = parseInt(activeRecipe.nutrition?.carbs || 40);
+            const baseFat = parseInt(activeRecipe.nutrition?.fat || 12);
+
+            const scaledCal = Math.round(baseCal * scaleFactor);
+            const scaledProt = Math.round(baseProt * scaleFactor);
+            const scaledCarbs = Math.round(baseCarbs * scaleFactor);
+            const scaledFat = Math.round(baseFat * scaleFactor);
+
+            // SOLID STARS ONLY
+            const userRating = Math.round(activeRecipe.rating || 5);
+            let starsHtml = '';
+            for (let i = 1; i <= userRating; i++) {
+                starsHtml += `<i data-lucide="star" onclick="rateRecipe(${i})" class="w-6 h-6 cursor-pointer text-amber-400 fill-amber-400"></i>`;
+            }
+
+            container.innerHTML = `
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-1.5">${starsHtml}</div>
+                        <span class="text-xs text-brand-400 font-mono font-bold">[${activeRecipe.source || 'local'}]</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mb-3">
+                        ${(activeRecipe.dietary || []).map(d => `<span class="px-3 py-1 rounded-lg text-[11px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30">${d}</span>`).join('')}
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/60 text-center">
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Calories</span><span class="text-xs font-bold text-white">${scaledCal} kcal</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Protein</span><span class="text-xs font-bold text-emerald-400">${scaledProt}g</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Carbs</span><span class="text-xs font-bold text-amber-400">${scaledCarbs}g</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Fat</span><span class="text-xs font-bold text-rose-400">${scaledFat}g</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 mb-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-white block">Servings Adjuster</span>
+                        <span class="text-[10px] text-slate-400">Ingredients & nutrition auto-scale</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-900 px-3 py-2 rounded-xl border border-slate-700">
+                        <button onclick="updateServings(-1)" class="text-brand-400 font-bold text-lg px-2 active:scale-95 hover:text-white">-</button>
+                        <span class="text-xs font-bold text-white min-w-[24px] text-center">${scaledServings}</span>
+                        <button onclick="updateServings(1)" class="text-brand-400 font-bold text-lg px-2 active:scale-95 hover:text-white">+</button>
+                    </div>
+                </div>
+
+                <details open class="bg-slate-800/60 border border-slate-700/60 rounded-2xl mb-4 overflow-hidden">
+                    <summary class="px-4 py-3.5 font-semibold text-xs text-white cursor-pointer flex items-center justify-between bg-slate-800/90 select-none">
+                        <span class="flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-brand-400"></i> Ingredients Needed</span>
+                    </summary>
+                    <div class="px-4 pb-3.5">
+                        ${ingredientsList}
+                    </div>
+                </details>
+
+                <div class="bg-gradient-to-br from-brand-950/80 to-slate-800 border border-brand-500/30 rounded-2xl p-4 shadow-xl text-center">
+                    <h3 class="text-sm font-bold text-white mb-1 flex items-center justify-center gap-2">
+                        <i data-lucide="chef-hat" class="w-5 h-5 text-brand-400"></i> Interactive Cooking Mode
+                    </h3>
+                    <p class="text-xs text-slate-300 mb-3.5">Launch full-screen step wizard with interactive timers and visual guide badges.</p>
+                    <button onclick="enterFullscreenCooking(${stepIndex})" class="w-full py-3.5 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30">
+                        <i data-lucide="maximize-2" class="w-4 h-4"></i> Start Full-Screen Cooking
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- FULL-SCREEN COOKING WIZARD ---
+        function enterFullscreenCooking(stepIdx = 0) {
+            if (!activeRecipe) return;
+            currentFSStepIndex = stepIdx;
+            document.getElementById('fs-recipe-title').textContent = `${activeRecipe.title} [${activeRecipe.source || 'local'}]`;
+            document.getElementById('fullscreen-cooking-overlay').classList.remove('hidden');
+            renderFullscreenStep(currentFSStepIndex);
+            lucide.createIcons();
+        }
+
+        function exitFullscreenCooking() {
+            stopStepTimer();
+            document.getElementById('fullscreen-cooking-overlay').classList.add('hidden');
+        }
+
+        function pauseCookingSessionFromFS() {
+            pauseCookingSession(currentFSStepIndex);
+            exitFullscreenCooking();
+        }
+
+        function renderFullscreenStep(index) {
+            const container = document.getElementById('fs-wizard-body');
+            const steps = activeRecipe.steps || [];
+            if (steps.length === 0) return;
+
+            const step = steps[index];
+            const isLast = index === steps.length - 1;
+            const visualBadges = getVisualBadgesForText(step.text);
+
+            if (step.duration > 0 && timerOriginalSeconds !== step.duration * 60) {
+                stopStepTimer();
+                timerOriginalSeconds = step.duration * 60;
+                timerSecondsRemaining = timerOriginalSeconds;
+            }
+
+            container.innerHTML = `
+                <div class="space-y-2 mb-3">
+                    <div class="flex items-center justify-between text-xs text-slate-400 font-medium">
+                        <span>Step ${index + 1} of ${steps.length}</span>
+                        <span class="text-brand-400 font-semibold">${Math.round(((index + 1) / steps.length) * 100)}% Complete</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-brand-600 to-amber-400 transition-all duration-300" style="width: ${((index + 1) / steps.length) * 100}%"></div>
+                    </div>
+                </div>
+
+                <div class="flex-1 my-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center items-center text-center shadow-2xl relative overflow-hidden">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-400 border border-brand-500/20 flex items-center justify-center mb-4">
+                        <i data-lucide="${step.icon === 'timer' ? 'clock' : 'utensils'}" class="w-8 h-8"></i>
+                    </div>
+
+                    ${visualBadges ? `<div class="flex flex-wrap justify-center gap-1.5 mb-3">${visualBadges}</div>` : ''}
+
+                    <p class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed max-w-sm mb-6">${step.text}</p>
+
+                    ${step.duration > 0 ? `
+                        <div class="bg-slate-800/90 border border-slate-700/80 p-4 rounded-2xl w-full max-w-xs shadow-inner">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Step Timer</span>
+                            <div class="text-3xl font-mono font-bold text-amber-400 mb-3 tracking-wider" id="timer-display">
+                                ${formatTimerDisplay(timerSecondsRemaining)}
+                            </div>
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="toggleStepTimer(${step.duration * 60})" id="btn-timer-toggle" class="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${isTimerRunning ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">
+                                    <i data-lucide="${isTimerRunning ? 'pause' : 'play'}" class="w-4 h-4"></i>
+                                    <span id="btn-timer-toggle-text">${isTimerRunning ? 'Stop Timer' : 'Start Timer'}</span>
+                                </button>
+                                <button onclick="resetStepTimer(${step.duration * 60})" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="flex gap-3 pt-3">
+                    <button ${index === 0 ? 'disabled class="opacity-30 cursor-not-allowed"' : ''} onclick="changeFSStep(${index - 1})" class="flex-1 py-4 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-700">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i> Previous
+                    </button>
+
+                    ${isLast ? `
+                        <button onclick="finishCookingSessionFromFS()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> Complete Recipe!
+                        </button>
+                    ` : `
+                        <button onclick="changeFSStep(${index + 1})" class="flex-1 py-4 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-brand-600/30">
+                            Next Step <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+
+        function changeFSStep(newIdx) {
+            stopStepTimer();
+            currentFSStepIndex = newIdx;
+            timerOriginalSeconds = 0;
+            renderFullscreenStep(currentFSStepIndex);
+            lucide.createIcons();
+        }
+
+        function toggleStepTimer(defaultSeconds) {
+            if (isTimerRunning) {
+                stopStepTimer();
+                updateTimerButtonState(false);
+            } else {
+                if (timerSecondsRemaining <= 0) {
+                    timerSecondsRemaining = defaultSeconds;
+                }
+                startStepTimer();
+                updateTimerButtonState(true);
+            }
+        }
+
+        function startStepTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            isTimerRunning = true;
+
+            timerInterval = setInterval(() => {
+                timerSecondsRemaining--;
+                updateTimerDisplay();
+                if (timerSecondsRemaining <= 0) {
+                    stopStepTimer();
+                    updateTimerButtonState(false);
+                    playTimerBeepSound();
+                    showToast("⏰ Timer Finished! Check your food.");
+                }
+            }, 1000);
+        }
+
+        function stopStepTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            isTimerRunning = false;
+        }
+
+        function resetStepTimer(defaultSeconds) {
+            stopStepTimer();
+            timerSecondsRemaining = defaultSeconds;
+            updateTimerDisplay();
+            updateTimerButtonState(false);
+        }
+
+        function updateTimerButtonState(running) {
+            const txt = document.getElementById('btn-timer-toggle-text');
+            const btn = document.getElementById('btn-timer-toggle');
+            if (!txt || !btn) return;
+
+            if (running) {
+                txt.textContent = 'Stop Timer';
+                btn.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-amber-600 hover:bg-amber-500 text-white';
+            } else {
+                txt.textContent = 'Start Timer';
+                btn.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-500 text-white';
+            }
+            lucide.createIcons();
+        }
+
+        function formatTimerDisplay(totalSecs) {
+            const mins = Math.floor(Math.max(0, totalSecs) / 60);
+            const secs = Math.max(0, totalSecs) % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            if (display) {
+                display.textContent = formatTimerDisplay(timerSecondsRemaining);
+            }
+        }
+
+        function playTimerBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.2);
+            } catch(e) {}
+        }
+
+        function finishCookingSessionFromFS() {
+            exitFullscreenCooking();
+            finishCookingSession();
+        }
+
+        // --- 10. PAUSE SESSION & RATINGS ---
+        function pauseCookingSession(stepIdx) {
+            pausedState = {
+                recipe: activeRecipe,
+                stepIndex: stepIdx,
+                scaledServings: scaledServings,
+                timestamp: new Date().toISOString()
+            };
+            savePausedStateToStorage();
+            closeRecipeModal();
+            switchTab('paused');
+            showToast("Cooking session paused & saved!");
+        }
+
+        function finishCookingSession() {
+            if (pausedState && pausedState.recipe.id === activeRecipe.id) {
+                clearPausedSession();
+            }
+            closeRecipeModal();
+            showToast("🎉 Recipe completed! Bon appétit!");
+        }
+
+        function rateRecipe(stars) {
+            if (!activeRecipe) return;
+            activeRecipe.rating = stars;
+
+            const idx = localRecipes.findIndex(r => r.id === activeRecipe.id);
+            if (idx !== -1) {
+                localRecipes[idx].rating = stars;
+                saveLocalRecipesToStorage();
+            }
+
+            renderModalContent();
+            lucide.createIcons();
+            showToast(`Rated ${stars} Stars!`);
+        }
+
+        // --- 11. IMPORT/EXPORT ---
+        function saveOnlineToLocal() {
+            if (!activeRecipe) return;
+            const exists = localRecipes.some(r => r.id === activeRecipe.id);
+            if (!exists) {
+                activeRecipe.source = activeRecipe.source || 'online';
+                localRecipes.unshift(activeRecipe);
+                saveLocalRecipesToStorage();
+                showToast("Saved recipe to My Books!");
+                document.getElementById('btn-save-online-modal').classList.add('hidden');
+            } else {
+                showToast("Recipe is already in local books!");
+            }
+        }
+
+        function exportCurrentRecipe() {
+            if (!activeRecipe) return;
+            const jsonStr = JSON.stringify(activeRecipe, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${activeRecipe.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_recipe.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast("Exported recipe JSON file");
+        }
+
+        function triggerImport() {
+            document.getElementById('file-import').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedRecipe = JSON.parse(e.target.result);
+                    if (importedRecipe.title && importedRecipe.ingredients) {
+                        importedRecipe.id = 'imported_' + Date.now();
+                        importedRecipe.source = importedRecipe.source || 'local';
+                        localRecipes.unshift(importedRecipe);
+                        saveLocalRecipesToStorage();
+                        switchTab('local');
+                        showToast(`Imported "${importedRecipe.title}" successfully!`);
+                    } else {
+                        showToast("Invalid recipe JSON structure.");
+                    }
+                } catch(err) {
+                    showToast("Error parsing JSON file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

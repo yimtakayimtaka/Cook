@@ -1,0 +1,83 @@
+{
+    "id": "recipe_kung_pao",
+    "title": "Szechuan Kung Pao Chicken",
+    "source": "local",
+    "servings": 3,
+    "prepTime": "15 mins",
+    "cookTime": "10 mins",
+    "rating": 5,
+    "nutrition": {
+        "calories": 390,
+        "protein": "31g",
+        "carbs": "18g",
+        "fat": "22g"
+    },
+    "dietary": [
+        "Contains Meat",
+        "Spicy"
+    ],
+    "ingredients": [
+        {
+            "name": "Chicken Breast (Cubed)",
+            "quantity": 450,
+            "unit": "g"
+        },
+        {
+            "name": "Roasted Peanuts",
+            "quantity": 60,
+            "unit": "g"
+        },
+        {
+            "name": "Dried Red Chilies",
+            "quantity": 6,
+            "unit": "units"
+        },
+        {
+            "name": "Szechuan Peppercorns",
+            "quantity": 1,
+            "unit": "tsp"
+        },
+        {
+            "name": "Soy Sauce",
+            "quantity": 3,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Dark Vinegar / Chinkiang",
+            "quantity": 1,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Sesame Oil",
+            "quantity": 1,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Cornstarch",
+            "quantity": 1,
+            "unit": "tbsp"
+        }
+    ],
+    "steps": [
+        {
+            "icon": "bowl",
+            "text": "Toss cubed chicken with 1 tbsp soy sauce and cornstarch in a bowl.",
+            "duration": 5
+        },
+        {
+            "icon": "flame",
+            "text": "Heat sesame oil in a wok. Fry dried chilies and Szechuan peppercorns until fragrant.",
+            "duration": 2
+        },
+        {
+            "icon": "utensils",
+            "text": "Add chicken cubes to wok and stir-fry rapidly over high flame.",
+            "duration": 5
+        },
+        {
+            "icon": "sparkles",
+            "text": "Toss in roasted peanuts and dark vinegar, tossing quickly before serving warm.",
+            "duration": 1
+        }
+    ]
+}

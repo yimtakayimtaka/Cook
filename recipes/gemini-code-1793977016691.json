@@ -1,0 +1,83 @@
+{
+    "id": "recipe_tikka_masala",
+    "title": "Chicken Tikka Masala",
+    "source": "local",
+    "servings": 4,
+    "prepTime": "20 mins",
+    "cookTime": "25 mins",
+    "rating": 5,
+    "nutrition": {
+        "calories": 480,
+        "protein": "36g",
+        "carbs": "16g",
+        "fat": "30g"
+    },
+    "dietary": [
+        "Contains Meat",
+        "Gluten-Free"
+    ],
+    "ingredients": [
+        {
+            "name": "Chicken Breast (Diced)",
+            "quantity": 600,
+            "unit": "g"
+        },
+        {
+            "name": "Plain Yogurt",
+            "quantity": 120,
+            "unit": "ml"
+        },
+        {
+            "name": "Garam Masala",
+            "quantity": 2,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Minced Garlic",
+            "quantity": 4,
+            "unit": "cloves"
+        },
+        {
+            "name": "Fresh Ginger (Grated)",
+            "quantity": 1,
+            "unit": "tbsp"
+        },
+        {
+            "name": "Tomato Passata",
+            "quantity": 400,
+            "unit": "g"
+        },
+        {
+            "name": "Heavy Cream / Double Cream",
+            "quantity": 150,
+            "unit": "ml"
+        },
+        {
+            "name": "Butter",
+            "quantity": 30,
+            "unit": "g"
+        }
+    ],
+    "steps": [
+        {
+            "icon": "bowl",
+            "text": "Marinate diced chicken in yogurt, half the garlic, ginger, and 1 tbsp garam masala.",
+            "duration": 15
+        },
+        {
+            "icon": "flame",
+            "text": "Melt butter in a large skillet over high heat. Sear chicken until browned on all sides.",
+            "duration": 6
+        },
+        {
+            "icon": "droplet",
+            "text": "Pour in tomato passata and remaining spices. Reduce heat to a low simmer.",
+            "duration": 12
+        },
+        {
+            "icon": "blend",
+            "text": "Stir in double cream gently until sauce turns rich orange and glossy.",
+            "duration": 2
+        }
+    ]
+}

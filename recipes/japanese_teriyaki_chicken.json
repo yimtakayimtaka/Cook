@@ -1,0 +1,49 @@
+{
+  "id": "loc_teriyaki_chicken",
+  "title": "Japanese Teriyaki Chicken",
+  "source": "local",
+  "servings": 2,
+  "prepTime": "10 mins",
+  "cookTime": "12 mins",
+  "rating": 5,
+  "nutrition": {
+    "calories": 420,
+    "protein": "34g",
+    "carbs": "22g",
+    "fat": "20g"
+  },
+  "dietary": [
+    "Japanese",
+    "Contains Meat"
+  ],
+  "ingredients": [
+    { "name": "Chicken Thighs (Boneless)", "quantity": 400, "unit": "g" },
+    { "name": "Soy Sauce", "quantity": 3, "unit": "tbsp" },
+    { "name": "Mirin", "quantity": 2, "unit": "tbsp" },
+    { "name": "Sake or Rice Wine", "quantity": 2, "unit": "tbsp" },
+    { "name": "Sugar", "quantity": 1, "unit": "tbsp" },
+    { "name": "Sesame Seeds", "quantity": 1, "unit": "tsp" }
+  ],
+  "steps": [
+    {
+      "icon": "scissors",
+      "text": "Cut chicken thighs into bite-sized pieces.",
+      "duration": 0
+    },
+    {
+      "icon": "flame",
+      "text": "Sear chicken skin-side down in a hot skillet until crispy and fat releases.",
+      "duration": 6
+    },
+    {
+      "icon": "droplet",
+      "text": "Whisk soy sauce, mirin, sake, and sugar together and pour over chicken.",
+      "duration": 0
+    },
+    {
+      "icon": "timer",
+      "text": "Simmer until sauce turns sticky and coats chicken in a glossy glaze.",
+      "duration": 5
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "loc_kung_pao_chicken",
+  "title": "Szechuan Kung Pao Chicken",
+  "source": "local",
+  "servings": 3,
+  "prepTime": "15 mins",
+  "cookTime": "10 mins",
+  "rating": 4,
+  "nutrition": {
+    "calories": 450,
+    "protein": "32g",
+    "carbs": "18g",
+    "fat": "26g"
+  },
+  "dietary": [
+    "Chinese",
+    "Contains Meat"
+  ],
+  "ingredients": [
+    { "name": "Chicken Breast (Cube Cut)", "quantity": 450, "unit": "g" },
+    { "name": "Roasted Peanuts", "quantity": 60, "unit": "g" },
+    { "name": "Dried Red Chilis", "quantity": 6, "unit": "units" },
+    { "name": "Szechuan Peppercorns", "quantity": 1, "unit": "tsp" },
+    { "name": "Soy Sauce", "quantity": 2, "unit": "tbsp" },
+    { "name": "Sesame Oil", "quantity": 1, "unit": "tbsp" }
+  ],
+  "steps": [
+    {
+      "icon": "scissors",
+      "text": "Dice chicken breasts into small uniform cubes.",
+      "duration": 0
+    },
+    {
+      "icon": "flame",
+      "text": "Stir-fry dried chilis and Szechuan peppercorns in wok with hot sesame oil.",
+      "duration": 2
+    },
+    {
+      "icon": "utensils",
+      "text": "Add diced chicken and stir-fry rapidly on high heat.",
+      "duration": 5
+    },
+    {
+      "icon": "sparkles",
+      "text": "Toss in roasted peanuts and soy sauce before serving over rice.",
+      "duration": 0
+    }
+  ]
+}
