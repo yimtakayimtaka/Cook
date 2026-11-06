@@ -64,8 +64,8 @@
                     <i data-lucide="utensils" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-base tracking-tight leading-none text-white">YimCook</h1>
-                    <span class="text-[10px] text-brand-500 font-semibold uppercase tracking-wider">Mobile Assistant</span>
+                    <h1 id="header-title-text" class="font-bold text-base tracking-tight leading-none text-white">YimCook</h1>
+                    <span id="header-subtitle-text" class="text-[10px] text-brand-500 font-semibold uppercase tracking-wider">Mobile Assistant</span>
                 </div>
             </div>
 
@@ -88,20 +88,20 @@
         <nav class="flex-shrink-0 h-20 pb-[env(safe-area-inset-bottom)] bg-slate-800/95 backdrop-blur-lg border-t border-slate-700/80 px-3 flex items-center justify-around z-30 shadow-2xl">
             <button onclick="switchTab('local')" id="nav-local" class="nav-btn flex flex-col items-center justify-center w-full h-full text-brand-500 transition-all active:scale-95">
                 <i data-lucide="book-open" class="w-6 h-6 mb-1"></i>
-                <span class="text-[11px] font-semibold">My Books</span>
+                <span id="nav-lbl-books" class="text-[11px] font-semibold">My Books</span>
             </button>
             <button onclick="switchTab('online')" id="nav-online" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-200 transition-all active:scale-95">
                 <i data-lucide="globe" class="w-6 h-6 mb-1"></i>
-                <span class="text-[11px] font-semibold">Explore</span>
+                <span id="nav-lbl-explore" class="text-[11px] font-semibold">Explore</span>
             </button>
             <button onclick="switchTab('paused')" id="nav-paused" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-200 transition-all relative active:scale-95">
                 <i data-lucide="timer" class="w-6 h-6 mb-1"></i>
-                <span class="text-[11px] font-semibold">In-Progress</span>
+                <span id="nav-lbl-progress" class="text-[11px] font-semibold">In-Progress</span>
                 <span id="badge-paused" class="hidden absolute top-3 right-5 w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
             </button>
             <button onclick="switchTab('sources')" id="nav-sources" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-200 transition-all active:scale-95">
                 <i data-lucide="settings" class="w-6 h-6 mb-1"></i>
-                <span class="text-[11px] font-semibold">Sources</span>
+                <span id="nav-lbl-sources" class="text-[11px] font-semibold">Sources</span>
             </button>
         </nav>
 
@@ -134,7 +134,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="pauseCookingSessionFromFS()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 active:scale-95">
-                        <i data-lucide="pause" class="w-4 h-4"></i> Pause
+                        <span id="fs-btn-pause">Pause</span>
                     </button>
                     <button onclick="exitFullscreenCooking()" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 active:scale-95">
                         <i data-lucide="x" class="w-6 h-6"></i>
@@ -154,6 +154,182 @@
     </div>
 
     <script>
+        // --- TRANSLATIONS (EN / UR) ---
+        const TRANSLATIONS = {
+            en: {
+                appName: "YimCook",
+                subtitle: "Mobile Assistant",
+                navBooks: "My Books",
+                navExplore: "Explore",
+                navProgress: "In-Progress",
+                navSources: "Sources & Settings",
+                myCollection: "My Recipe Collection",
+                noRecipes: "No recipes found.",
+                exploreTitle: "Explore Asian & Indian Recipes",
+                searchPlaceholder: "Search Samosa, Curry, Ramen, Tikka...",
+                searchBtn: "Search",
+                queryingText: "Querying multi-source recipe databases...",
+                noOnlineRecipes: "No online recipes found matching",
+                exploreHint: "Search online sources across TheMealDB, DummyJSON, Spoonacular & Foodashi.",
+                noActiveSession: "No Active Cooking Session",
+                pausedHint: "Paused step progress and ingredients appear here.",
+                pausedSessionTag: "PAUSED SESSION",
+                currentStep: "Current Step:",
+                resumeCooking: "Resume Cooking",
+                discard: "Discard",
+                sourcesTitle: "Recipe Sources & Settings",
+                sourcesDesc: "Configure global APIs and speech/language accessibility options.",
+                speechSettingsHeading: "Voice & Speech Settings",
+                enableSpeechLabel: "Enable Text-to-Speech (Tap items to speak)",
+                languageLabel: "App Language",
+                jsonToolsTitle: "Local JSON Recipe Tools",
+                jsonToolsDesc: "Upload custom .json recipe files or scan the local recipes/ folder.",
+                uploadJsonBtn: "Upload Recipe JSON File",
+                calories: "Calories",
+                protein: "Protein",
+                carbs: "Carbs",
+                fat: "Fat",
+                servingsAdjuster: "Servings Adjuster",
+                servingsHint: "Ingredients & nutrition auto-scale",
+                ingredientsNeeded: "Ingredients Needed",
+                interactiveCookingMode: "Interactive Cooking Mode",
+                interactiveCookingDesc: "Launch full-screen step wizard with interactive timers and visual guide badges.",
+                startFullscreen: "Start Full-Screen Cooking",
+                cookingMode: "Cooking Mode",
+                pause: "Pause",
+                stepText: "Step",
+                ofText: "of",
+                completePercent: "Complete",
+                stepTimer: "Step Timer",
+                startTimer: "Start Timer",
+                stopTimer: "Stop Timer",
+                reset: "Reset",
+                previous: "Previous",
+                nextStep: "Next Step",
+                completeRecipe: "Complete Recipe!",
+                timerFinished: "⏰ Timer Finished! Check your food.",
+                savedToBooks: "Saved recipe to My Books!",
+                alreadyInBooks: "Recipe is already in local books!",
+                deleted: "Deleted",
+                exported: "Exported recipe JSON file",
+                imported: "successfully!",
+                invalidJson: "Invalid recipe JSON structure.",
+                parseError: "Error parsing JSON file.",
+                pausedToast: "Cooking session paused & saved!",
+                completedToast: "🎉 Recipe completed! Bon appétit!",
+                settingsUpdated: "Settings updated successfully"
+            },
+            ur: {
+                appName: "یم کک",
+                subtitle: "موبাইল اسسٹنٹ",
+                navBooks: "میری کتب",
+                navExplore: "تلاش کریں",
+                navProgress: "جاری ہے",
+                navSources: "ذرائع اور سیٹنگز",
+                myCollection: "میری ریسیپی کلیکشن",
+                noRecipes: "کوئی ریسیپی نہیں ملی۔",
+                exploreTitle: "یشیائی اور ہندوستانی ریسیپیز تلاش کریں",
+                searchPlaceholder: "سموسہ، کری، ریمن، تکہ تلاش کریں...",
+                searchBtn: "تلاش",
+                queryingText: "ریسیپی ڈیٹا بیسز سے رابطہ کیا جا رہا ہے...",
+                noOnlineRecipes: "اس سے ملتی جلتی کوئی آن لائن ریسیپی نہیں ملی",
+                exploreHint: "TheMealDB، DummyJSON، Spoonacular اور Foodashi سے آن لائن ریسیپیز تلاش کریں۔",
+                noActiveSession: "کوئی فعال کوکنگ سیشن نہیں ہے",
+                pausedHint: "روکا گیا مرحلہ اور اجزاء یہاں ظاہر ہوں گے۔",
+                pausedSessionTag: "روکا گیا سیشن",
+                currentStep: "موجودہ مرحلہ:",
+                resumeCooking: "کوکنگ دوبارہ شروع کریں",
+                discard: "ختم کریں",
+                sourcesTitle: "ریسیپی ذرائع اور سیٹنگز",
+                sourcesDesc: "گلوبل APIs اور آواز/زبان کی سہولیات کو ترتیب دیں۔",
+                speechSettingsHeading: "آواز اور تقریر کی سیٹنگز",
+                enableSpeechLabel: "بولنے کی سہولت فعال کریں (بولنے کے لیے کسی شے کو چھتیں)",
+                languageLabel: "ایپ کی زبان",
+                jsonToolsTitle: "مقامی JSON ریسیپی ٹولز",
+                jsonToolsDesc: "کسٹম .json ریسیپی فائلیں اپ لوڈ کریں یا مقامی فولڈر اسکین کریں۔",
+                uploadJsonBtn: "ریسیپی JSON فائل اپ لوڈ کریں",
+                calories: "کیلوریز",
+                protein: "پروٹین",
+                carbs: "کاربوہائیড্রેટ",
+                fat: "چربی",
+                servingsAdjuster: "حصوں کی ترتیب",
+                servingsHint: "اجزاء اور غذائیت خود بخود ایڈجسٹ ہوتے ہیں",
+                ingredientsNeeded: "مطلوبہ اجزاء",
+                interactiveCookingMode: "انٹرایکٹو کوکنگ موڈ",
+                interactiveCookingDesc: "ٹائمرز اور بصری گائیڈز کے ساتھ فل سکرین مرحلہ وار وزرڈ شروع کریں۔",
+                startFullscreen: "فل سکرین کوکنگ شروع کریں",
+                cookingMode: "کوکنگ موڈ",
+                pause: "روکیں",
+                stepText: "مرحلہ",
+                ofText: "از",
+                completePercent: "مکمل",
+                stepTimer: "مرحلہ ٹائمر",
+                startTimer: "ٹائمر شروع کریں",
+                stopTimer: "ٹائمر بند کریں",
+                reset: "دوبارہ سیٹ کریں",
+                previous: "پچھلا",
+                nextStep: "اگلا مرحلہ",
+                completeRecipe: "ریسیپی مکمل ہو گئی!",
+                timerFinished: "⏰ ٹائمر ختم ہو گیا! اپنے کھانے کی جانچ کریں۔",
+                savedToBooks: "ریسیپی میری کتب میں محفوظ ہو گئی!",
+                alreadyInBooks: "ریسیپی پہلے سے مقامی کتب میں موجود ہے!",
+                deleted: "حذف کر دیا گیا",
+                exported: "ریسیپی JSON فائل ایکسپورٹ ہو گئی",
+                imported: "کامیابی سے درآمد ہو گئی!",
+                invalidJson: "غلط ریسیپی JSON ساخت۔",
+                parseError: "JSON فائل پڑھنے میں خرابی۔",
+                pausedToast: "کوکنگ سیشن روک کر محفوظ کر لیا گیا!",
+                completedToast: "🎉 ریسیپی مکمل ہو گئی! نوش فرمائیں!",
+                settingsUpdated: "سیٹنگز کامیابی سے اپ ڈیٹ ہو گئیں"
+            }
+        };
+
+        const URDU_DICTIONARY = {
+            "margherita pizza": "مارگریٹا پیزا",
+            "classic fairy cakes": "کلاسیک فیری کیکس",
+            "pizza flour / bread flour": "پیزا آٹا / بریڈ آٹا",
+            "instant yeast": "فوری خمیر",
+            "warm water": "گرم پانی",
+            "passata / tomato sauce": "ٹماٹر ساس",
+            "fresh mozzarella": "تازہ موزاریلا پنیر",
+            "fresh basil leaves": "تازہ تلسی کے پتے",
+            "unsalted butter (softened)": "بغیر نمک کا مکھن (نرم کیا ہوا)",
+            "caster sugar": "پسی ہوئی چینی",
+            "self-raising flour": "سیلف ریزنگ آٹا",
+            "eggs": "انڈے",
+            "large": "بڑے",
+            "g": "گرام",
+            "ml": "ملی لیتر",
+            "leaves": "پتے",
+            "item": "آئ템",
+            "pack": "پیک",
+            "serving": "حصہ",
+            "unit": "یونٹ",
+            "vegetarian": "سبزی خور",
+            "Mix flour, yeast, and warm water in a bowl. Knead for 8 minutes until smooth.": "ایک پیالے میں آٹا، خمیر اور گرم پانی مکس کریں۔ 8 منٹ تک گوندھیں جب تک ہموار نہ ہو جائے۔",
+            "Cover dough and leave in a warm spot to rise.": "آٹے کو ڈھانپ کر پھولنے کے لیے گرم جگہ پر رکھیں۔",
+            "Preheat oven to 230°C (450°F) or highest setting.": "اوون کو 230 ڈگری سینٹی گریڈ یا سب سے زیادہ درجہ حرارت پر گرم کریں۔",
+            "Stretch dough into a 10-inch circle on a baking sheet.": "بیکنگ شیٹ پر آٹے کو 10 انچ کے گول دائرے میں پھیلائیں۔",
+            "Spread passata evenly and top with torn mozzarella slices.": "ٹماٹر ساس کو یکساں طور پر پھیلائیں اور اوپر کٹی ہوئی موزاریلا سلائسیں رکھیں۔",
+            "Bake in the hot oven until crust is golden and cheese bubbles.": "گرم اوون میں اس وقت تک بیک کریں جب تک پرت سنہری اور پنیر بلبلے نہ چھوڑے۔",
+            "Preheat oven to 180°C (350°F) and line a 12-hole muffin tray.": "اوون کو 180 ڈگری سینٹی گریڈ پر گرم کریں اور 12 خانوں والی مفن ٹ্রে تیار کریں۔",
+            "Beat butter and sugar together until light and fluffy.": "مکھن اور چینی کو اس وقت تک پھینٹیں جب تک ہلکا اور پھولا ہوا نہ ہو جائے۔",
+            "Whisk in eggs one at a time with vanilla extract.": "وینیلا کے ساتھ انڈوں کو ایک ایک کر کے پھینٹیں۔",
+            "Bake in oven until golden and springy to touch.": "اوون میں اس وقت تک بیک کریں جب تک سنہری اور چھونے پر لچکدار نہ ہو جائے۔"
+        };
+
+        function t(key) {
+            const lang = appSettings.language || 'en';
+            return TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key] || key;
+        }
+
+        function translateText(text) {
+            if (appSettings.language !== 'ur') return text;
+            if (!text) return '';
+            const lower = text.trim().toLowerCase();
+            return URDU_DICTIONARY[lower] || text;
+        }
+
         // --- 1. DEFAULT RECIPES ---
         const BUILTIN_RECIPES = [
             {
@@ -246,7 +422,7 @@
             return badges.join(' ');
         }
 
-        // --- 2. STATE ---
+        // --- 2. STATE & SETTINGS ---
         let currentTab = 'local';
         let localRecipes = [];
         let onlineResults = [];
@@ -262,6 +438,11 @@
         let alarmInterval = null;
         let activeAlarmAudioCtx = null;
         
+        let appSettings = {
+            enableSpeech: true,
+            language: 'en'
+        };
+
         let apiSources = [
             { id: 'themealdb', name: 'TheMealDB Free API', enabled: true, url: 'https://www.themealdb.com/api/json/v1/1/search.php?s=' },
             { id: 'dummyjson', name: 'DummyJSON Recipes', enabled: true, url: 'https://dummyjson.com/recipes/search?q=' },
@@ -282,6 +463,10 @@
         ];
 
         window.addEventListener('DOMContentLoaded', async () => {
+            const savedSettings = localStorage.getItem('yimcook_settings');
+            if (savedSettings) {
+                try { appSettings = JSON.parse(savedSettings); } catch(e) {}
+            }
             await initApp();
         });
 
@@ -308,8 +493,19 @@
                 try { apiSources = JSON.parse(savedSources); } catch(e) {}
             }
 
+            updateStaticUIStrings();
             lucide.createIcons();
             switchTab('local');
+        }
+
+        function updateStaticUIStrings() {
+            document.getElementById('header-title-text').textContent = t('appName');
+            document.getElementById('header-subtitle-text').textContent = t('subtitle');
+            document.getElementById('nav-lbl-books').textContent = t('navBooks');
+            document.getElementById('nav-lbl-explore').textContent = t('navExplore');
+            document.getElementById('nav-lbl-progress').textContent = t('navProgress');
+            document.getElementById('nav-lbl-sources').textContent = t('navSources');
+            document.getElementById('fs-btn-pause').textContent = t('pause');
         }
 
         async function scanLocalFolderRecipes() {
@@ -343,6 +539,16 @@
             }
         }
 
+        // --- SPEECH SYNTHESIS HELPER ---
+        function speakText(text) {
+            if (!appSettings.enableSpeech) return;
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = appSettings.language === 'ur' ? 'ur-PK' : 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -367,7 +573,7 @@
         }
 
         function renderLocalTab(container) {
-            renderRecipeList(container, localRecipes, "My Recipe Collection", true);
+            renderRecipeList(container, localRecipes, t('myCollection'), true);
         }
 
         function renderRecipeList(container, list, title, isLocal) {
@@ -384,7 +590,7 @@
                 html += `
                     <div class="text-center py-12 text-slate-500">
                         <i data-lucide="book-open-check" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
-                        <p class="text-sm">No recipes found.</p>
+                        <p class="text-sm">${t('noRecipes')}</p>
                     </div>
                 `;
             } else {
@@ -393,19 +599,19 @@
                     const solidStarsCount = Math.round(recipe.rating || 5);
                     const stars = '★'.repeat(solidStarsCount);
                     const sourceTag = `[${recipe.source || (isLocal ? 'local' : 'online')}]`;
-                    const tags = (recipe.dietary || []).map(d => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300">${d}</span>`).join(' ');
+                    const tags = (recipe.dietary || []).map(d => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300">${translateText(d)}</span>`).join(' ');
 
                     html += `
                         <div onclick="handleRecipeClick('${recipe.id}', ${isLocal})" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
                             <div class="flex-1 pr-3">
                                 <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                                    <h3 class="font-bold text-sm text-slate-100">${recipe.title}</h3>
+                                    <h3 class="font-bold text-sm text-slate-100">${translateText(recipe.title)}</h3>
                                     <span class="text-[11px] font-mono text-brand-400 font-semibold">${sourceTag}</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
                                     <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${recipe.cookTime || '20m'}</span>
                                     <span>•</span>
-                                    <span class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Serves ${recipe.servings}</span>
+                                    <span class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> ${recipe.servings}</span>
                                     <span>•</span>
                                     <span class="text-amber-400 font-bold tracking-widest text-xs">${stars}</span>
                                 </div>
@@ -455,7 +661,7 @@
             const rec = localRecipes.find(r => r.id === recipeId);
             const title = rec ? rec.title : "this recipe";
 
-            if (confirm(`Are you sure you want to delete "${title}" from My Books?`)) {
+            if (confirm(`${t('deleted')} "${title}"?`)) {
                 localRecipes = localRecipes.filter(r => r.id !== recipeId);
                 saveLocalRecipesToStorage();
                 
@@ -468,22 +674,22 @@
                     renderLocalTab(document.getElementById('content-area'));
                 }
                 lucide.createIcons();
-                showToast(`Deleted "${title}"`);
+                showToast(`${t('deleted')} "${title}"`);
             }
         }
 
         function renderOnlineTab(container) {
             container.innerHTML = `
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-white mb-2">Explore Asian & Indian Recipes</h2>
+                    <h2 class="text-base font-bold text-white mb-2">${t('exploreTitle')}</h2>
                     <div class="flex gap-2 mb-3">
                         <div class="relative flex-1">
-                            <input type="text" id="search-online-input" placeholder="Search Samosa, Curry, Ramen, Tikka..." 
+                            <input type="text" id="search-online-input" placeholder="${t('searchPlaceholder')}" 
                                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pl-10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-brand-500">
                             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
                         </div>
                         <button onclick="performOnlineSearch()" class="px-5 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-lg shadow-brand-600/20">
-                            Search
+                            ${t('searchBtn')}
                         </button>
                     </div>
 
@@ -497,7 +703,7 @@
                 <div id="online-results-container">
                     <div class="text-center py-12 text-slate-500">
                         <i data-lucide="globe-2" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
-                        <p class="text-xs">Search online sources across TheMealDB, DummyJSON, Spoonacular & Foodashi.</p>
+                        <p class="text-xs">${t('exploreHint')}</p>
                     </div>
                 </div>
             `;
@@ -516,7 +722,7 @@
             resultsContainer.innerHTML = `
                 <div class="text-center py-12 text-slate-400">
                     <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin text-brand-500"></i>
-                    <p class="text-xs">Querying multi-source recipe databases...</p>
+                    <p class="text-xs">${t('queryingText')}</p>
                 </div>
             `;
             lucide.createIcons();
@@ -549,11 +755,11 @@
                 resultsContainer.innerHTML = `
                     <div class="text-center py-12 text-slate-500">
                         <i data-lucide="frown" class="w-10 h-10 mx-auto mb-2 stroke-1"></i>
-                        <p class="text-xs">No online recipes found matching "${query}".</p>
+                        <p class="text-xs">${t('noOnlineRecipes')} "${query}".</p>
                     </div>
                 `;
             } else {
-                renderRecipeList(resultsContainer, onlineResults, "Search Results", false);
+                renderRecipeList(resultsContainer, onlineResults, t('exploreTitle'), false);
             }
             lucide.createIcons();
         }
@@ -747,8 +953,8 @@
                 container.innerHTML = `
                     <div class="text-center py-16 text-slate-500">
                         <i data-lucide="timer-off" class="w-12 h-12 mx-auto mb-2 stroke-1"></i>
-                        <h3 class="text-sm font-semibold text-slate-300 mb-1">No Active Cooking Session</h3>
-                        <p class="text-xs max-w-[240px] mx-auto">Paused step progress and ingredients appear here.</p>
+                        <h3 class="text-sm font-semibold text-slate-300 mb-1">${t('noActiveSession')}</h3>
+                        <p class="text-xs max-w-[240px] mx-auto">${t('pausedHint')}</p>
                     </div>
                 `;
                 return;
@@ -756,30 +962,31 @@
 
             const rec = pausedState.recipe;
             const currentStep = rec.steps[pausedState.stepIndex];
+            const stepTextContent = currentStep ? translateText(currentStep.text) : '';
 
             container.innerHTML = `
                 <div class="bg-gradient-to-br from-brand-900/40 to-slate-800 border border-brand-500/30 rounded-2xl p-4 shadow-xl">
                     <div class="flex items-center justify-between mb-3">
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center gap-1">
-                            <i data-lucide="pause-circle" class="w-3.5 h-3.5"></i> PAUSED SESSION
+                            <i data-lucide="pause-circle" class="w-3.5 h-3.5"></i> ${t('pausedSessionTag')}
                         </span>
-                        <span class="text-xs text-slate-400">Step ${pausedState.stepIndex + 1} of ${rec.steps.length}</span>
+                        <span class="text-xs text-slate-400">${t('stepText')} ${pausedState.stepIndex + 1} ${t('ofText')} ${rec.steps.length}</span>
                     </div>
 
-                    <h2 class="text-lg font-bold text-white mb-1">${rec.title} <span class="text-xs text-brand-400 font-mono">[${rec.source || 'local'}]</span></h2>
-                    <p class="text-xs text-slate-400 mb-4">Scaled for ${pausedState.scaledServings} servings</p>
+                    <h2 class="text-lg font-bold text-white mb-1" onclick="speakText('${translateText(rec.title).replace(/'/g, "\\'")}')">${translateText(rec.title)} <span class="text-xs text-brand-400 font-mono">[${rec.source || 'local'}]</span></h2>
+                    <p class="text-xs text-slate-400 mb-4">${pausedState.scaledServings} servings</p>
 
-                    <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-700/60 mb-4">
-                        <span class="text-[10px] font-semibold text-brand-400 uppercase tracking-wider block mb-1">Current Step:</span>
-                        <p class="text-xs text-slate-200 leading-relaxed">${currentStep ? currentStep.text : 'Complete'}</p>
+                    <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-700/60 mb-4 cursor-pointer hover:bg-slate-900 transition-all" onclick="speakText('${stepTextContent.replace(/'/g, "\\'")}')" title="Click to speak step">
+                        <span class="text-[10px] font-semibold text-brand-400 uppercase tracking-wider block mb-1">${t('currentStep')}</span>
+                        <p class="text-xs text-slate-200 leading-relaxed">${stepTextContent}</p>
                     </div>
 
                     <div class="flex gap-2">
                         <button onclick="resumeCookingSession()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30">
-                            <i data-lucide="play" class="w-4 h-4"></i> Resume Cooking
+                            <i data-lucide="play" class="w-4 h-4"></i> ${t('resumeCooking')}
                         </button>
                         <button onclick="clearPausedSession()" class="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">
-                            Discard
+                            ${t('discard')}
                         </button>
                     </div>
                 </div>
@@ -803,9 +1010,33 @@
         function renderSourcesTab(container) {
             let html = `
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-white mb-1">Recipe Sources & APIs</h2>
-                    <p class="text-xs text-slate-400">Configure global APIs used for multi-source search.</p>
+                    <h2 class="text-base font-bold text-white mb-1">${t('sourcesTitle')}</h2>
+                    <p class="text-xs text-slate-400">${t('sourcesDesc')}</p>
                 </div>
+
+                <!-- Voice and Language Settings Box -->
+                <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-4 mb-4 space-y-4">
+                    <h3 class="text-xs font-bold text-brand-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="mic" class="w-4 h-4"></i> ${t('speechSettingsHeading')}
+                    </h3>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-200 font-medium">${t('enableSpeechLabel')}</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${appSettings.enableSpeech ? 'checked' : ''} onchange="toggleSpeechSetting(this)" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                        </label>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
+                        <span class="text-xs text-slate-200 font-medium">${t('languageLabel')}</span>
+                        <select onchange="changeLanguageSetting(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-brand-500 font-semibold">
+                            <option value="en" ${appSettings.language === 'en' ? 'selected' : ''}>English</option>
+                            <option value="ur" ${appSettings.language === 'ur' ? 'selected' : ''}>اردو (Urdu)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="space-y-3 mb-6">
             `;
 
@@ -828,11 +1059,11 @@
                 </div>
                 <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
                     <h3 class="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
-                        <i data-lucide="file-json" class="w-4 h-4 text-brand-400"></i> Local JSON Recipe Tools
+                        <i data-lucide="file-json" class="w-4 h-4 text-brand-400"></i> ${t('jsonToolsTitle')}
                     </h3>
-                    <p class="text-[11px] text-slate-400 mb-3">Upload custom .json recipe files or scan the local recipes/ folder.</p>
+                    <p class="text-[11px] text-slate-400 mb-3">${t('jsonToolsDesc')}</p>
                     <button onclick="triggerImport()" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
-                        <i data-lucide="upload" class="w-4 h-4"></i> Upload Recipe JSON File
+                        <i data-lucide="upload" class="w-4 h-4"></i> ${t('uploadJsonBtn')}
                     </button>
                 </div>
             `;
@@ -840,11 +1071,25 @@
             container.innerHTML = html;
         }
 
+        function toggleSpeechSetting(checkbox) {
+            appSettings.enableSpeech = checkbox.checked;
+            localStorage.setItem('yimcook_settings', JSON.stringify(appSettings));
+            showToast(t('settingsUpdated'));
+        }
+
+        function changeLanguageSetting(lang) {
+            appSettings.language = lang;
+            localStorage.setItem('yimcook_settings', JSON.stringify(appSettings));
+            updateStaticUIStrings();
+            switchTab(currentTab);
+            showToast(t('settingsUpdated'));
+        }
+
         function toggleApiSource(id) {
             const src = apiSources.find(s => s.id === id);
             if (src) src.enabled = !src.enabled;
             localStorage.setItem('gourmet_api_sources', JSON.stringify(apiSources));
-            showToast("API sources updated");
+            showToast(t('settingsUpdated'));
         }
 
         function openRecipeModal(recipeId, isLocal, initialStepIndex = 0) {
@@ -859,7 +1104,7 @@
             if (!activeRecipe) return;
 
             scaledServings = activeRecipe.servings || 4;
-            document.getElementById('modal-title').textContent = `${activeRecipe.title} [${activeRecipe.source || 'local'}]`;
+            document.getElementById('modal-title').textContent = `${translateText(activeRecipe.title)} [${activeRecipe.source || 'local'}]`;
             document.getElementById('recipe-modal').classList.remove('hidden');
 
             renderModalContent(initialStepIndex);
@@ -887,13 +1132,16 @@
             const ingredientsList = (activeRecipe.ingredients || []).map(ing => {
                 const scaledQty = (ing.quantity * scaleFactor).toFixed(1).replace(/\.0$/, '');
                 const visualBadges = getVisualBadgesForText(ing.name);
+                const translatedName = translateText(ing.name);
+                const translatedUnit = translateText(ing.unit);
+                const speechString = `${scaledQty} ${translatedUnit} of ${translatedName}`;
                 return `
-                    <div class="flex items-center justify-between py-2.5 border-b border-slate-800 text-xs">
+                    <div onclick="speakText('${speechString.replace(/'/g, "\\'")}')" class="flex items-center justify-between py-2.5 border-b border-slate-800 text-xs cursor-pointer hover:bg-slate-800/50 transition-all px-1 rounded">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-slate-200 font-medium">${ing.name}</span>
+                            <span class="text-slate-200 font-medium">${translatedName}</span>
                             ${visualBadges}
                         </div>
-                        <span class="text-brand-400 font-bold whitespace-nowrap pl-2">${scaledQty} ${ing.unit}</span>
+                        <span class="text-brand-400 font-bold whitespace-nowrap pl-2">${scaledQty} ${translatedUnit}</span>
                     </div>
                 `;
             }).join('');
@@ -921,21 +1169,21 @@
                         <span class="text-xs text-brand-400 font-mono font-bold">[${activeRecipe.source || 'local'}]</span>
                     </div>
                     <div class="flex flex-wrap gap-1.5 mb-3">
-                        ${(activeRecipe.dietary || []).map(d => `<span class="px-3 py-1 rounded-lg text-[11px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30">${d}</span>`).join('')}
+                        ${(activeRecipe.dietary || []).map(d => `<span class="px-3 py-1 rounded-lg text-[11px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30">${translateText(d)}</span>`).join('')}
                     </div>
 
                     <div class="grid grid-cols-4 gap-2 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/60 text-center">
-                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Calories</span><span class="text-xs font-bold text-white">${scaledCal} kcal</span></div>
-                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Protein</span><span class="text-xs font-bold text-emerald-400">${scaledProt}g</span></div>
-                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Carbs</span><span class="text-xs font-bold text-amber-400">${scaledCarbs}g</span></div>
-                        <div><span class="text-[10px] text-slate-400 block mb-0.5">Fat</span><span class="text-xs font-bold text-rose-400">${scaledFat}g</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">${t('calories')}</span><span class="text-xs font-bold text-white">${scaledCal} kcal</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">${t('protein')}</span><span class="text-xs font-bold text-emerald-400">${scaledProt}g</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">${t('carbs')}</span><span class="text-xs font-bold text-amber-400">${scaledCarbs}g</span></div>
+                        <div><span class="text-[10px] text-slate-400 block mb-0.5">${t('fat')}</span><span class="text-xs font-bold text-rose-400">${scaledFat}g</span></div>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 mb-4 flex items-center justify-between">
                     <div>
-                        <span class="text-xs font-bold text-white block">Servings Adjuster</span>
-                        <span class="text-[10px] text-slate-400">Ingredients & nutrition auto-scale</span>
+                        <span class="text-xs font-bold text-white block">${t('servingsAdjuster')}</span>
+                        <span class="text-[10px] text-slate-400">${t('servingsHint')}</span>
                     </div>
                     <div class="flex items-center gap-3 bg-slate-900 px-3 py-2 rounded-xl border border-slate-700">
                         <button onclick="updateServings(-1)" class="text-brand-400 font-bold text-lg px-2 active:scale-95 hover:text-white">-</button>
@@ -946,7 +1194,7 @@
 
                 <details open class="bg-slate-800/60 border border-slate-700/60 rounded-2xl mb-4 overflow-hidden">
                     <summary class="px-4 py-3.5 font-semibold text-xs text-white cursor-pointer flex items-center justify-between bg-slate-800/90 select-none">
-                        <span class="flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-brand-400"></i> Ingredients Needed</span>
+                        <span class="flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-brand-400"></i> ${t('ingredientsNeeded')}</span>
                     </summary>
                     <div class="px-4 pb-3.5">
                         ${ingredientsList}
@@ -955,11 +1203,11 @@
 
                 <div class="bg-gradient-to-br from-brand-950/80 to-slate-800 border border-brand-500/30 rounded-2xl p-4 shadow-xl text-center">
                     <h3 class="text-sm font-bold text-white mb-1 flex items-center justify-center gap-2">
-                        <i data-lucide="chef-hat" class="w-5 h-5 text-brand-400"></i> Interactive Cooking Mode
+                        <i data-lucide="chef-hat" class="w-5 h-5 text-brand-400"></i> ${t('interactiveCookingMode')}
                     </h3>
-                    <p class="text-xs text-slate-300 mb-3.5">Launch full-screen step wizard with interactive timers and visual guide badges.</p>
+                    <p class="text-xs text-slate-300 mb-3.5">${t('interactiveCookingDesc')}</p>
                     <button onclick="enterFullscreenCooking(${stepIndex})" class="w-full py-3.5 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30">
-                        <i data-lucide="maximize-2" class="w-4 h-4"></i> Start Full-Screen Cooking
+                        <i data-lucide="maximize-2" class="w-4 h-4"></i> ${t('startFullscreen')}
                     </button>
                 </div>
             `;
@@ -968,7 +1216,7 @@
         function enterFullscreenCooking(stepIdx = 0) {
             if (!activeRecipe) return;
             currentFSStepIndex = stepIdx;
-            document.getElementById('fs-recipe-title').textContent = `${activeRecipe.title} [${activeRecipe.source || 'local'}]`;
+            document.getElementById('fs-recipe-title').textContent = `${translateText(activeRecipe.title)} [${activeRecipe.source || 'local'}]`;
             document.getElementById('fullscreen-cooking-overlay').classList.remove('hidden');
             renderFullscreenStep(currentFSStepIndex);
             lucide.createIcons();
@@ -991,6 +1239,7 @@
 
             const step = steps[index];
             const isLast = index === steps.length - 1;
+            const translatedStepText = translateText(step.text);
             const visualBadges = getVisualBadgesForText(step.text);
 
             if (step.duration > 0 && timerOriginalSeconds !== step.duration * 60) {
@@ -1002,8 +1251,8 @@
             container.innerHTML = `
                 <div class="space-y-2 mb-3">
                     <div class="flex items-center justify-between text-xs text-slate-400 font-medium">
-                        <span>Step ${index + 1} of ${steps.length}</span>
-                        <span class="text-brand-400 font-semibold">${Math.round(((index + 1) / steps.length) * 100)}% Complete</span>
+                        <span>${t('stepText')} ${index + 1} ${t('ofText')} ${steps.length}</span>
+                        <span class="text-brand-400 font-semibold">${Math.round(((index + 1) / steps.length) * 100)}% ${t('completePercent')}</span>
                     </div>
                     <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                         <div class="h-full bg-gradient-to-r from-brand-600 to-amber-400 transition-all duration-300" style="width: ${((index + 1) / steps.length) * 100}%"></div>
@@ -1017,21 +1266,21 @@
 
                     ${visualBadges ? `<div class="flex flex-wrap justify-center gap-1.5 mb-3">${visualBadges}</div>` : ''}
 
-                    <p class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed max-w-sm mb-6">${step.text}</p>
+                    <p onclick="speakText('${translatedStepText.replace(/'/g, "\\'")}')" class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed max-w-sm mb-6 cursor-pointer hover:text-brand-300 transition-all" title="Click to speak step">${translatedStepText}</p>
 
                     ${step.duration > 0 ? `
                         <div class="bg-slate-800/90 border border-slate-700/80 p-4 rounded-2xl w-full max-w-xs shadow-inner">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Step Timer</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">${t('stepTimer')}</span>
                             <div class="text-3xl font-mono font-bold text-amber-400 mb-3 tracking-wider" id="timer-display">
                                 ${formatTimerDisplay(timerSecondsRemaining)}
                             </div>
                             <div class="flex gap-2 justify-center">
                                 <button onclick="toggleStepTimer(${step.duration * 60})" id="btn-timer-toggle" class="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${isTimerRunning ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">
                                     <i data-lucide="${isTimerRunning ? 'pause' : 'play'}" class="w-4 h-4"></i>
-                                    <span id="btn-timer-toggle-text">${isTimerRunning ? 'Stop Timer' : 'Start Timer'}</span>
+                                    <span id="btn-timer-toggle-text">${isTimerRunning ? t('stopTimer') : t('startTimer')}</span>
                                 </button>
                                 <button onclick="resetStepTimer(${step.duration * 60})" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1">
-                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> ${t('reset')}
                                 </button>
                             </div>
                         </div>
@@ -1040,16 +1289,16 @@
 
                 <div class="flex gap-3 pt-3">
                     <button ${index === 0 ? 'disabled class="opacity-30 cursor-not-allowed"' : ''} onclick="changeFSStep(${index - 1})" class="flex-1 py-4 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-700">
-                        <i data-lucide="chevron-left" class="w-4 h-4"></i> Previous
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i> ${t('previous')}
                     </button>
 
                     ${isLast ? `
                         <button onclick="finishCookingSessionFromFS()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30">
-                            <i data-lucide="check-circle" class="w-4 h-4"></i> Complete Recipe!
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> ${t('completeRecipe')}
                         </button>
                     ` : `
                         <button onclick="changeFSStep(${index + 1})" class="flex-1 py-4 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-brand-600/30">
-                            Next Step <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            ${t('nextStep')} <i data-lucide="chevron-right" class="w-4 h-4"></i>
                         </button>
                     `}
                 </div>
@@ -1088,7 +1337,7 @@
                     stopStepTimer();
                     updateTimerButtonState(false);
                     startAlarmSound();
-                    showToast("⏰ Timer Finished! Check your food.");
+                    showToast(t('timerFinished'));
                 }
             }, 1000);
         }
@@ -1112,10 +1361,10 @@
             if (!txt || !btn) return;
 
             if (running) {
-                txt.textContent = 'Stop Timer';
+                txt.textContent = t('stopTimer');
                 btn.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-amber-600 hover:bg-amber-500 text-white';
             } else {
-                txt.textContent = 'Start Timer';
+                txt.textContent = t('startTimer');
                 btn.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-500 text-white';
             }
             lucide.createIcons();
@@ -1183,7 +1432,7 @@
             savePausedStateToStorage();
             closeRecipeModal();
             switchTab('paused');
-            showToast("Cooking session paused & saved!");
+            showToast(t('pausedToast'));
         }
 
         function finishCookingSession() {
@@ -1191,7 +1440,7 @@
                 clearPausedSession();
             }
             closeRecipeModal();
-            showToast("🎉 Recipe completed! Bon appétit!");
+            showToast(t('completedToast'));
         }
 
         function rateRecipe(stars) {
@@ -1216,10 +1465,10 @@
                 activeRecipe.source = activeRecipe.source || 'online';
                 localRecipes.unshift(activeRecipe);
                 saveLocalRecipesToStorage();
-                showToast("Saved recipe to My Books!");
+                showToast(t('savedToBooks'));
                 document.getElementById('btn-save-online-modal').classList.add('hidden');
             } else {
-                showToast("Recipe is already in local books!");
+                showToast(t('alreadyInBooks'));
             }
         }
 
@@ -1237,7 +1486,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            showToast("Exported recipe JSON file");
+            showToast(t('exported'));
         }
 
         function triggerImport() {
@@ -1258,12 +1507,12 @@
                         localRecipes.unshift(importedRecipe);
                         saveLocalRecipesToStorage();
                         switchTab('local');
-                        showToast(`Imported "${importedRecipe.title}" successfully!`);
+                        showToast(`"${importedRecipe.title}" ${t('imported')}`);
                     } else {
-                        showToast("Invalid recipe JSON structure.");
+                        showToast(t('invalidJson'));
                     }
                 } catch(err) {
-                    showToast("Error parsing JSON file.");
+                    showToast(t('parseError'));
                 }
             };
             reader.readAsText(file);
